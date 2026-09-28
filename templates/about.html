@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% block title %}About | Waqqas IDS{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-main">
+        <p class="eyebrow">About the Platform</p>
+        <h1>Built for detection.<br>Designed for decisions.</h1>
+        <p class="hero-text">
+            <span class="waqqas-mark">Waqqas</span> is a supervised machine learning intrusion detection
+            system that connects classification accuracy with analyst workflow — bringing detection,
+            source investigation, response controls, feedback capture, and adaptive retraining into
+            a single coherent security platform.
+        </p>
+    </div>
+    <div class="hero-side hero-highlight">
+        <span class="status-chip active-chip">Platform overview</span>
+        <p class="hero-file">
+            98.87% test accuracy · 1.73% FPR · 99.68% detection rate · AUC 0.9997<br>
+            NSL-KDD · Soft Voting Ensemble · Five-class classification · Adaptive retraining
+        </p>
+    </div>
+</section>
+
+<section class="panel reveal">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Design Philosophy</p>
+            <h2>Why <span class="waqqas-mark">Waqqas</span> was built this way</h2>
+        </div>
+    </div>
+    <div class="info-grid">
+        <div class="info-box reveal-card">
+            <h3>From raw records to actionable security decisions</h3>
+            <p>
+                Most IDS implementations stop at a classification output. Waqqas treats that as
+                the starting point. Every prediction feeds into a structured analyst workflow —
+                source IP visibility, risk scoring, alert generation, block controls, and feedback
+                capture — giving each detection decision a clear path forward.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Bridging detection performance and operational behavior</h3>
+            <p>
+                Waqqas is engineered to behave like a real intrusion detection system rather than
+                a research experiment. Persistent state, alert-first interface design, confidence-aware
+                escalation for uncertain events, and a retraining path with internal label integrity
+                give it the operational characteristics that matter in practice.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="panel reveal">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Detection Architecture</p>
+            <h2>Engineering decisions behind the detection engine</h2>
+        </div>
+    </div>
+    <div class="info-grid">
+        <div class="info-box reveal-card">
+            <h3>Soft Voting Ensemble over single-model output</h3>
+            <p>
+                Three independently trained algorithms — Logistic Regression, Decision Tree,
+                and Random Forest — were evaluated on the same validation split before being
+                combined. The ensemble consistently outperforms every individual algorithm
+                on precision, recall, detection rate, and false positive rate.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>SMOTE for rare attack families</h3>
+            <p>
+                U2R and R2L attacks represent under 1% of NSL-KDD traffic. Without corrective
+                oversampling the model defaults to majority-class prediction. SMOTE generates
+                synthetic minority-class samples during training to force first-class detection
+                across all five attack categories — including the rarest and most dangerous ones.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Mutual information feature selection</h3>
+            <p>
+                SelectKBest with mutual information scoring identified the 30 highest-signal
+                features from the full NSL-KDD 41-feature set. This reduces inference overhead,
+                removes noisy dimensions, and improves generalization when the model is applied
+                to traffic patterns it has not directly seen during training.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Canonical label system for safe retraining</h3>
+            <p>
+                Every label used internally — in training, prediction, storage, feedback, and
+                retraining — maps to one of five canonical classes. Analyst-entered corrections
+                pass through a normalization resolver before storage, preventing label drift
+                from accumulating across feedback cycles and corrupting future training pipelines.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="panel reveal">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Operational Behavior</p>
+            <h2>How the system behaves at runtime</h2>
+        </div>
+    </div>
+    <div class="info-grid">
+        <div class="info-box reveal-card">
+            <h3>Confidence-gated unknown escalation</h3>
+            <p>
+                When the ensemble's highest class probability falls below the configured
+                threshold, the connection is classified as "Unknown Suspicious Behavior"
+                rather than assigned an unreliable attack label. Analysts are never presented
+                with a high-confidence prediction the model is not actually confident about.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Source IP-aware automated response</h3>
+            <p>
+                Every classified record retains its source IP. High-confidence critical
+                threats trigger automatic IP blocking. Analysts can block or unblock any
+                source directly from the detection table. Every action is logged with
+                a timestamped, reason-annotated audit note.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Presentation-layer label transformation</h3>
+            <p>
+                The interface shows refined, human-readable attack names. Internally, the system
+                always uses the original canonical labels for inference, storage, and retraining.
+                The transformation is strictly presentational — it never affects the classification
+                pipeline or the integrity of stored data.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Background retraining with live model reload</h3>
+            <p>
+                Retraining runs as an async background process — the dashboard remains fully
+                operational during the cycle. When training completes, the model is hot-reloaded
+                in memory. The Analysis page reflects the updated metrics immediately on the
+                next page load.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="panel reveal">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Detection Performance</p>
+            <h2>Metrics that exceed the defined targets</h2>
+        </div>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom:0;">
+        <div class="stat-card">
+            <span class="stat-label">Test Accuracy</span>
+            <div class="stat-value">98.87%</div>
+            <p class="stat-note">Target was ≥ 95%. Validated on the held-out NSL-KDD test split.</p>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">False Positive Rate</span>
+            <div class="stat-value">1.73%</div>
+            <p class="stat-note">Target was &lt; 5%. Minimal analyst alert fatigue from benign misclassification.</p>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Detection Rate</span>
+            <div class="stat-value">99.68%</div>
+            <p class="stat-note">Target was ≥ 93%. The ensemble captures nearly all real threats in the test set.</p>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">AUC</span>
+            <div class="stat-value">0.9997</div>
+            <p class="stat-note">Near-perfect ROC area under curve. Confirmed stable via 5-fold cross-validation.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ── Authorship credit ─────────────────────────────────────────────────── -->
+<section class="panel reveal" style="margin-bottom:0; position:relative; overflow:hidden;">
+    <div style="
+        position: absolute; inset: 0; pointer-events: none;
+        background:
+            radial-gradient(circle at 90% 50%, rgba(31,209,165,0.06), transparent 40%),
+            radial-gradient(circle at 10% 50%, rgba(57,207,255,0.05), transparent 40%);
+    "></div>
+
+    <div style="position:relative; z-index:2; text-align:center; padding: 14px 0 8px;">
+        <p class="eyebrow" style="margin-bottom:20px;">Conceived &amp; Engineered by</p>
+
+        <div style="
+            display: inline-flex; flex-direction: column; align-items: center; gap: 16px;
+            padding: 30px 48px;
+            border: 1px solid rgba(31,209,165,0.22);
+            border-radius: var(--radius);
+            background: linear-gradient(180deg, rgba(12,24,38,0.96), rgba(8,16,28,0.98));
+            box-shadow: 0 0 60px rgba(31,209,165,0.05), 0 20px 50px rgba(0,0,0,0.3);
+        ">
+            <div style="
+                width: 72px; height: 72px; border-radius: 50%;
+                background: radial-gradient(circle, rgba(31,209,165,0.16), rgba(57,207,255,0.08));
+                border: 2px solid rgba(31,209,165,0.28);
+                display: flex; align-items: center; justify-content: center;
+                font-size: 2rem;
+                box-shadow: 0 0 30px rgba(31,209,165,0.10);
+            ">🛡</div>
+
+            <div>
+                <div style="
+                    font-family: 'Outfit', sans-serif;
+                    font-size: 2rem; font-weight: 900;
+                    letter-spacing: 0.02em; line-height: 1.1;
+                    background: linear-gradient(135deg, #e8f8ff 0%, #86f3d7 40%, #39cfff 80%);
+                    -webkit-background-clip: text; background-clip: text;
+                    -webkit-text-fill-color: transparent; color: transparent;
+                    margin-bottom: 8px;
+                ">Amr Antar Qassim</div>
+                <div style="
+                    font-size: 0.82rem; color: var(--faint);
+                    text-transform: uppercase; letter-spacing: 0.2em;
+                    font-weight: 700;
+                ">Lead Developer &amp; Systems Architect</div>
+            </div>
+
+            <div style="
+                display: flex; gap: 20px; align-items: center;
+                padding: 12px 20px;
+                border-radius: 12px;
+                border: 1px solid var(--border);
+                background: rgba(255,255,255,0.025);
+                flex-wrap: wrap; justify-content: center;
+            ">
+                <span style="font-size:0.82rem; color:var(--muted); font-family:monospace; letter-spacing:0.04em;">
+                    🗓 15 / 05 / 2026
+                </span>
+                <span style="width:1px; height:16px; background:var(--border);"></span>
+                <span style="font-size:0.82rem; color:var(--muted); font-family:monospace; letter-spacing:0.04em;">
+                    Waqqas IDS · Version 1.0
+                </span>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+{% block title %}Capabilities | Waqqas IDS{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-main">
+        <p class="eyebrow">System Capabilities</p>
+        <h1>
+            Detection, investigation, and response —<br>coordinated in one security-first platform.
+        </h1>
+        <p class="hero-text">
+            <span class="waqqas-mark">Waqqas</span> is structured around five interconnected layers:
+            a trained multi-algorithm classification pipeline, a confidence-aware escalation system,
+            a source IP-linked response layer, a structured analyst feedback mechanism, and an
+            adaptive retraining cycle. Each layer feeds the next — designed to operate as a
+            coherent security workflow, not a collection of isolated features.
+        </p>
+    </div>
+    <div class="hero-side hero-highlight">
+        <span class="status-chip active-chip">All modules operational</span>
+        <p class="hero-file">
+            Soft Voting Ensemble · NSL-KDD · Five-class detection ·
+            Confidence thresholding · Auto-block · Feedback normalization · Async retraining
+        </p>
+        <div class="hero-actions" style="margin-top:18px;">
+            <a href="/login" class="btn btn-primary link-btn" style="min-width:0; min-height:44px; font-size:0.88rem;">Access Dashboard</a>
+            <a href="/about" class="btn btn-ghost link-btn" style="min-width:0; min-height:44px; font-size:0.88rem;">About the Platform</a>
+        </div>
+    </div>
+</section>
+
+<!-- Detection engine -->
+<section class="panel reveal">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Layer 1 — Detection Engine</p>
+            <h2>Classification pipeline capabilities</h2>
+        </div>
+    </div>
+    <div class="feature-cards">
+        <div class="info-box reveal-card">
+            <h3>Five-class intrusion classification</h3>
+            <p>
+                Every connection record is classified into one of five categories: Normal Traffic,
+                Denial of Service, Reconnaissance/Scanning, Privilege Escalation, or Credential/Access
+                Abuse. Each classification is accompanied by a per-class probability distribution
+                and a confidence score used to drive all downstream routing decisions.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Confidence-gated unknown suspicious escalation</h3>
+            <p>
+                When the ensemble's highest class probability falls below the detection threshold,
+                the connection is routed as "Unknown Suspicious Behavior" rather than assigned an
+                unreliable category. Uncertain events are preserved for analyst review — never
+                silently dropped, never misattributed to a class the model isn't confident about.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>SMOTE oversampling for rare attack families</h3>
+            <p>
+                U2R and R2L attacks represent under 1% of NSL-KDD traffic. Without targeted
+                oversampling, the model defaults to majority-class behavior and effectively misses
+                these attack families. SMOTE generates synthetic minority-class samples during
+                training so rare but high-severity families receive full detection coverage.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Mutual information feature selection — 30 of 41 dimensions</h3>
+            <p>
+                Not every feature in a network connection record carries meaningful signal for
+                distinguishing attack families. Mutual information scoring ranks all 41 NSL-KDD
+                features and selects the 30 most discriminative, reducing inference noise and
+                improving generalization on traffic patterns not seen during training.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Three algorithms evaluated — one ensemble deployed</h3>
+            <p>
+                Logistic Regression, Decision Tree, and Random Forest were each trained and
+                benchmarked independently on the same validation split. The Soft Voting Ensemble
+                combines all three, consistently outperforming every individual algorithm on
+                precision, recall, detection rate, and false positive rate across all five classes.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Automated preprocessing pipeline</h3>
+            <p>
+                Uploaded CSV files are processed through the same conditioning pipeline used during
+                training: header validation, type normalization for categorical and numeric fields,
+                missing value imputation, and feature selection — applied automatically so the model
+                always receives properly structured input without manual preparation.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Response and analyst workflow -->
+<section class="panel reveal">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Layer 2 — Analyst Response</p>
+            <h2>What the analyst can do with each detection</h2>
+        </div>
+    </div>
+    <div class="feature-cards">
+        <div class="info-box reveal-card">
+            <h3>Source IP retained for every classified record</h3>
+            <p>
+                Every prediction row preserves the originating source IP address alongside the
+                risk level, confidence score, and a plain-language decision reason. Analysts have
+                the full context needed to investigate, validate, or escalate any event without
+                leaving the dashboard or switching tools.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Manual block and automated high-confidence blocking</h3>
+            <p>
+                Analysts can block any source IP directly from the detection table. Critical
+                high-confidence threats meet an automated blocking policy that fires without
+                requiring manual intervention. Both manual and automated blocks are recorded in
+                a full audit log with decision context and timestamps.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Visual threat alert with immediate response controls</h3>
+            <p>
+                When a dangerous or unknown event is detected, a modal appears immediately after
+                upload showing attack type, source IP, confidence score, and risk level — with
+                direct Block, Ignore, and View Details controls. The analyst gets the critical
+                information before anything else on the page.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Persistent threat banner for session-level awareness</h3>
+            <p>
+                When an uploaded file contains threats, a persistent banner at the top of the
+                dashboard summarizes the highest-risk detection and links directly to the results
+                table. Threat context stays visible across the session without requiring the analyst
+                to scroll back up or remember what was flagged.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Block notes with archiving and inspectable history</h3>
+            <p>
+                The block and unblock activity log can be cleared from the live view after review.
+                Cleared entries are moved to a secondary archived history rather than deleted,
+                preserving the full audit trail for compliance or retrospective analysis. Permanent
+                deletion of archived history requires explicit admin confirmation.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Unblock workflow with reason capture</h3>
+            <p>
+                Every unblock action requires an analyst-entered reason before it is confirmed.
+                This prevents accidental removals and ensures the audit trail always reflects the
+                rationale behind every change to the block registry — block decisions and reversals
+                are both fully documented.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Adaptive learning -->
+<section class="panel reveal">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Layer 3 — Feedback and Adaptive Learning</p>
+            <h2>How the system improves over time</h2>
+        </div>
+    </div>
+    <div class="feature-cards">
+        <div class="info-box reveal-card">
+            <h3>Per-prediction feedback with four classification states</h3>
+            <p>
+                Analysts can mark any prediction as Correct, False Positive, False Negative, or
+                Needs Review — with an optional corrected label. Feedback is captured inline in
+                the detection table and stored immediately, building a growing record of analyst
+                assessments tied to specific prediction records.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Canonical label normalization before storage</h3>
+            <p>
+                Corrected labels entered by analysts — in any form — are resolved to their canonical
+                equivalent before being written to the database. This prevents label inconsistency
+                from accumulating across feedback cycles. Inputs that cannot be confidently resolved
+                are rejected with an explicit warning rather than stored as ambiguous training signal.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Background retraining with live model reload</h3>
+            <p>
+                Retraining runs as an async background process using the NSL-KDD benchmark dataset.
+                The dashboard remains fully operational throughout. When the cycle completes, the
+                model is reloaded in memory and the Analysis page reflects the updated performance
+                metrics on the next load — no restart or manual intervention required.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Feedback export for downstream integration</h3>
+            <p>
+                All analyst corrections are available as a downloadable CSV containing the original
+                prediction, confidence score, feedback label, and normalized corrected label. This
+                structured export can be used for audit purposes, manual data review, or as
+                supplementary input to future training cycles.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Analysis and transparency -->
+<section class="panel reveal">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Layer 4 — Performance Analysis</p>
+            <h2>Full training transparency on the Analysis page</h2>
+        </div>
+    </div>
+    <div class="feature-cards">
+        <div class="info-box reveal-card">
+            <h3>Per-class detection metrics from held-out test split</h3>
+            <p>
+                The Analysis page surfaces per-class precision, recall, and F1-score computed
+                on a completely held-out test set — not the training data and not cross-validation
+                averages. This gives an honest picture of how the model performs on each attack
+                family when it encounters records it has never seen before.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>5-fold cross-validation stability evidence</h3>
+            <p>
+                Cross-validation scores for all five training folds are shown individually alongside
+                the mean. Consistent scores across all five folds confirm that the model's performance
+                is not an artifact of one favorable data partition — it generalizes across different
+                subsets of the training distribution.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Algorithm comparison across all three models</h3>
+            <p>
+                Performance metrics for each individual algorithm — accuracy, F1, false positive rate,
+                detection rate — are charted alongside the final ensemble. This makes the case for
+                the ensemble visible: analysts can see exactly where the combination of algorithms
+                outperforms every individual component.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Live stored prediction distribution</h3>
+            <p>
+                A doughnut chart and breakdown table show the cumulative distribution of all stored
+                predictions across every upload session. These values are read from the live database
+                on each page load — they reflect the current state of the prediction store, not a
+                cached snapshot.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Performance numbers -->
+<section class="panel reveal">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Measured Results</p>
+            <h2>Performance that holds up against the defined targets</h2>
+        </div>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom:0;">
+        <div class="stat-card">
+            <span class="stat-label">Test Accuracy</span>
+            <div class="stat-value">98.87%</div>
+            <p class="stat-note">Target: ≥ 95%. Measured on the held-out NSL-KDD test split.</p>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">False Positive Rate</span>
+            <div class="stat-value">1.73%</div>
+            <p class="stat-note">Target: &lt; 5%. Benign traffic classified as hostile — minimal alert fatigue.</p>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Detection Rate</span>
+            <div class="stat-value">99.68%</div>
+            <p class="stat-note">Target: ≥ 93%. Real attack records correctly identified as hostile.</p>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">AUC Score</span>
+            <div class="stat-value">0.9997</div>
+            <p class="stat-note">ROC area under curve for Normal vs. Attack. Confirmed via 5-fold CV.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

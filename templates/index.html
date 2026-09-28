@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+{% block title %}Waqqas IDS | AI-Powered Intrusion Detection{% endblock %}
+
+{% block splash %}
+<div class="splash-screen" id="splash-screen" aria-hidden="true" role="presentation">
+    <div class="splash-grid"></div>
+    <div class="splash-orbit"></div>
+    <div class="splash-scan"></div>
+    <div class="splash-core"></div>
+
+    <!-- Hex data stream left -->
+    <div class="splash-hex-left" aria-hidden="true">
+        <div>4e 65 74 77 6f 72 6b</div>
+        <div>49 6e 74 72 75 73 69</div>
+        <div>6f 6e 20 44 65 74 65</div>
+        <div>63 74 69 6f 6e 20 53</div>
+        <div>79 73 74 65 6d 20 76</div>
+        <div>32 2e 30 20 2f 2f 20</div>
+        <div>4d 4c 20 45 6e 67 69</div>
+        <div>6e 65 20 4c 6f 61 64</div>
+    </div>
+
+    <!-- Hex data stream right -->
+    <div class="splash-hex-right" aria-hidden="true">
+        <div>41 63 63 75 72 61 63</div>
+        <div>79 3a 20 39 38 2e 38</div>
+        <div>37 25 20 7c 20 46 50</div>
+        <div>52 3a 20 31 2e 37 33</div>
+        <div>25 20 7c 20 44 52 3a</div>
+        <div>39 39 2e 36 38 25 20</div>
+        <div>41 55 43 3a 20 30 2e</div>
+        <div>39 39 39 37 20 2f 2f</div>
+    </div>
+
+    <div class="splash-content">
+        <div class="splash-badge">
+            <span class="splash-badge-dot"></span>
+            <span>Adaptive Security Intelligence Platform</span>
+        </div>
+        <h1 class="splash-title">
+            Welcome to <span class="splash-name">Waqqas</span>
+        </h1>
+        <p class="splash-subtitle">
+            Detection pipeline active. Classification engine ready.<br>
+            Threats will not go unclassified.
+        </p>
+        <div class="splash-status">
+            <span class="splash-status-dot"></span>
+            System online — entering analyst workspace
+        </div>
+    </div>
+</div>
+
+<style>
+/* Splash hex streams */
+.splash-hex-left,
+.splash-hex-right {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: grid;
+    gap: 10px;
+    font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    font-size: 0.72rem;
+    line-height: 1.6;
+    letter-spacing: 0.08em;
+    color: rgba(31,209,165,0.22);
+    pointer-events: none;
+    z-index: 3;
+    animation: hexFade 3s ease-in-out infinite;
+}
+.splash-hex-left  { left: 3%; }
+.splash-hex-right { right: 3%; text-align: right; animation-delay: 1.5s; }
+@media (max-width: 768px) { .splash-hex-left, .splash-hex-right { display: none; } }
+
+@keyframes hexFade {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; color: rgba(57,207,255,0.30); }
+}
+
+/* Splash badge */
+.splash-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 14px; border-radius: 999px;
+    border: 1px solid rgba(31,209,165,0.20);
+    background: rgba(31,209,165,0.06);
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.18em;
+    text-transform: uppercase; color: rgba(162,245,223,0.88);
+    font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    margin-bottom: 22px;
+}
+.splash-badge-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #1fd1a5;
+    box-shadow: 0 0 10px rgba(31,209,165,0.6);
+    animation: beaconPulse 1.2s ease-in-out infinite;
+}
+
+/* Splash name gradient */
+.splash-name {
+    display: inline-block;
+    background: linear-gradient(135deg, #e8f8ff 0%, #86f3d7 40%, #39cfff 75%, #d0f8ff 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+    animation: gradShift 4s ease-in-out infinite;
+}
+@keyframes gradShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+/* Splash status */
+.splash-status {
+    margin-top: 20px;
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 10px 18px; border-radius: 999px;
+    border: 1px solid rgba(126,240,208,0.18);
+    background: rgba(255,255,255,0.03);
+    color: #dff8ef; font-size: 0.88rem; font-weight: 600;
+    font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+}
+.splash-status-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: #7ef0d0;
+    box-shadow: 0 0 12px rgba(126,240,208,0.5);
+    animation: beaconPulse 1.2s ease-in-out infinite;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero-panel landing-hero">
+    <div class="hero-main">
+        <p class="eyebrow">AI-Powered Network Security Platform</p>
+        <h1>
+            <span class="waqqas-mark">Waqqas</span> — machine learning precision for every threat, every connection.
+        </h1>
+        <p class="hero-text">
+            A supervised machine learning intrusion detection system that classifies network
+            traffic into five attack families, escalates uncertain events, tracks source IPs,
+            and supports analyst-driven adaptive retraining — built for operational accuracy.
+        </p>
+        <div class="hero-actions">
+            <a href="/login" class="btn btn-primary link-btn">Access Analyst Dashboard</a>
+            <a href="/features" class="btn btn-secondary link-btn">Explore Capabilities</a>
+        </div>
+    </div>
+
+    <div class="hero-side hero-highlight">
+        <span class="status-chip active-chip">Detection engine operational</span>
+        <p class="hero-file">
+            Multi-model ensemble · Five-class detection ·
+            Confidence escalation · Auto-block · Analyst feedback loop
+        </p>
+    </div>
+</section>
+
+<!-- Performance metrics -->
+<div class="stats-grid">
+    <div class="stat-card reveal">
+        <span class="stat-label">Test Accuracy</span>
+        <div class="stat-value">98.87<span style="font-size:1.3rem;font-weight:800;">%</span></div>
+        <p class="stat-note">Validated on a held-out evaluation split. Target was ≥ 95% — exceeded.</p>
+    </div>
+    <div class="stat-card reveal">
+        <span class="stat-label">False Positive Rate</span>
+        <div class="stat-value">1.73<span style="font-size:1.3rem;font-weight:800;">%</span></div>
+        <p class="stat-note">Benign traffic misclassified as hostile. Well below the 5% operational threshold.</p>
+    </div>
+    <div class="stat-card reveal">
+        <span class="stat-label">Detection Rate</span>
+        <div class="stat-value">99.68<span style="font-size:1.3rem;font-weight:800;">%</span></div>
+        <p class="stat-note">Real attack records correctly identified. Target was ≥ 93% — the ensemble captures nearly all.</p>
+    </div>
+    <div class="stat-card reveal">
+        <span class="stat-label">AUC Score</span>
+        <div class="stat-value">0.9997</div>
+        <p class="stat-note">ROC area under curve for Normal vs. Attack. Confirmed stable via 5-fold CV.</p>
+    </div>
+</div>
+
+<section class="panel reveal">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">System Capabilities</p>
+            <h2>What <span class="waqqas-mark">Waqqas</span> does at every layer</h2>
+        </div>
+        <a href="/features" class="btn btn-ghost btn-sm link-btn" style="min-width:0;min-height:40px;padding:0 16px;">Full capability list →</a>
+    </div>
+    <div class="info-grid">
+        <div class="info-box reveal-card">
+            <h3>Five-class threat classification</h3>
+            <p>
+                Classifies every connection record as Normal, Denial of Service,
+                Reconnaissance/Scanning, Privilege Escalation, or Credential/Access Abuse.
+                Each result carries a confidence score that drives downstream routing
+                — high-confidence threats escalate automatically.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Confidence-gated unknown escalation</h3>
+            <p>
+                When ensemble confidence falls below the threshold, the event is routed as
+                "Unknown Suspicious Behavior" instead of being forced into an unreliable category.
+                Uncertain events surface for analyst review — never silently dismissed.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Source IP-linked response controls</h3>
+            <p>
+                Every classified record retains its source IP. Critical high-confidence threats
+                trigger automatic blocking. Analysts can block or unblock any source directly
+                from the dashboard, with every action logged in a timestamped audit trail.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Feedback with safe label normalization</h3>
+            <p>
+                Analyst corrections are resolved to canonical labels before storage, preventing
+                inconsistent inputs from corrupting future retraining pipelines. Ambiguous
+                entries are rejected with an explicit warning.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="panel reveal">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Detection Lifecycle</p>
+            <h2>From upload to decision in four steps</h2>
+        </div>
+    </div>
+    <div class="info-grid">
+        <div class="info-box reveal-card">
+            <h3>1 — Upload structured connection records</h3>
+            <p>
+                Accepts CSV traffic files in the platform’s expected layout, with optional
+                <code>source_ip</code> for investigation and blocking. Validation and normalization
+                run automatically — no manual preprocessing required.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>2 — Ensemble inference with confidence scoring</h3>
+            <p>
+                The Soft Voting Ensemble runs inference on each row, returning a predicted class,
+                confidence score, and risk tier — persisted to the database immediately
+                for every upload session.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>3 — Alert-first threat surfacing</h3>
+            <p>
+                Dangerous and unknown events trigger a visual alert immediately after upload,
+                showing attack type, source IP, confidence, and risk level with direct
+                Block / Ignore / View controls.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>4 — Feedback capture and model refresh</h3>
+            <p>
+                Analyst feedback is recorded per prediction with optional corrected labels.
+                Corrections are normalized before storage. A background model refresh can be
+                triggered anytime without interrupting live classification.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="panel reveal">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Operational Assurance</p>
+            <h2>Built for defensible, repeatable detection</h2>
+        </div>
+    </div>
+    <div class="info-grid" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="info-box reveal-card">
+            <h3>Evaluation you can trust</h3>
+            <p>
+                Metrics are measured on held-out data the engine never trained on, so reported
+                accuracy reflects real generalization — not memorization of a single upload.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Confidence-aware escalation</h3>
+            <p>
+                Uncertain events surface as suspicious rather than being forced into a weak label.
+                Analysts see what needs review; benign traffic is not drowned in noise.
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.addEventListener("load", function() {
+    var splash = document.getElementById("splash-screen");
+    if (!splash) return;
+    setTimeout(function() {
+        splash.classList.add("hide");
+        setTimeout(function() { splash.remove(); }, 500);
+    }, 2800);
+});
+</script>
+{% endblock %}
