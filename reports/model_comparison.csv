@@ -1,4 +1,11 @@
+<<<<<<< HEAD
 model_name,accuracy,precision_weighted,recall_weighted,f1_weighted,false_positive_rate,detection_rate
 Logistic Regression,0.8869,0.9425,0.8869,0.9062,0.173,0.9861
 Decision Tree,0.9879,0.99,0.9879,0.9886,0.0181,0.9958
 Random Forest,0.9945,0.9945,0.9945,0.9945,0.0053,0.9947
+=======
+model_name,accuracy,precision_weighted,recall_weighted,f1_weighted,false_positive_rate,detection_rate
+Logistic Regression,0.8869,0.9425,0.8869,0.9062,0.173,0.9861
+Decision Tree,0.9879,0.99,0.9879,0.9886,0.0181,0.9958
+Random Forest,0.9945,0.9945,0.9945,0.9945,0.0053,0.9947
+>>>>>>> 38bc9e24b3d6457bccd27731a1e182084f56adda

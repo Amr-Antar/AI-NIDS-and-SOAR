@@ -1,3 +1,8 @@
+<<<<<<< HEAD
 duration,protocol_type,service,flag,src_bytes,dst_bytes
 1,tcp,http,SF,100,200
+=======
+duration,protocol_type,service,flag,src_bytes,dst_bytes
+1,tcp,http,SF,100,200
+>>>>>>> 38bc9e24b3d6457bccd27731a1e182084f56adda
 2,udp,domain_u,SF,150,300
