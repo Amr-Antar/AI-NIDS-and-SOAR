@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+{% block title %}Secure Access | Waqqas IDS{% endblock %}
+
+{% block head_extra %}
+<style>
+/* ── Login page — full-page secure gateway ─────────────────────────────────── */
+.login-page {
+    min-height: calc(100vh - var(--topbar-height) - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin-top: -20px;
+}
+
+.login-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: 0;
+    width: min(96vw, 1020px);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.44), 0 0 0 1px rgba(31,209,165,0.06);
+}
+
+/* ── Left panel: form ────────────────────────────────────────────────────── */
+.login-left {
+    background: linear-gradient(180deg, rgba(12,22,38,0.99) 0%, rgba(8,15,26,0.99) 100%);
+    padding: 44px 40px 44px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.login-brand-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 36px;
+}
+.login-brand-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(31,209,165,0.14), rgba(57,207,255,0.08));
+    border: 1px solid rgba(31,209,165,0.22);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; flex-shrink: 0;
+}
+.login-brand-name {
+    font-family: "Outfit", sans-serif;
+    font-size: 1.55rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    background: linear-gradient(135deg, #e8f8ff 0%, #86f3d7 40%, #39cfff 80%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+}
+.login-brand-sub {
+    font-size: 0.76rem; color: var(--faint);
+    text-transform: uppercase; letter-spacing: 0.14em;
+    font-weight: 700; margin-top: 3px;
+}
+
+/* Terminal chrome strip */
+.terminal-chrome {
+    display: flex; align-items: center; gap: 7px;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px 12px 0 0;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-bottom: none;
+}
+.chrome-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+.chrome-dot-red   { background: #e06a76; }
+.chrome-dot-amber { background: #f2c46d; }
+.chrome-dot-green { background: #1fd1a5; }
+.chrome-title {
+    margin: 0 auto;
+    font-size: 0.72rem; letter-spacing: 0.14em;
+    color: var(--faint); text-transform: uppercase;
+    font-weight: 700; font-family: "SFMono-Regular", Consolas, monospace;
+}
+
+/* Form shell */
+.login-shell {
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 0 0 14px 14px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+.login-body { padding: 26px 24px 24px; }
+
+.login-prompt {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.76rem; color: var(--accent);
+    letter-spacing: 0.06em; margin-bottom: 20px;
+    display: flex; align-items: center; gap: 8px;
+    opacity: 0.9;
+}
+.login-prompt::before { content: "▶"; font-size: 0.68rem; opacity: 0.7; }
+
+.login-field-label {
+    display: block; font-size: 0.76rem;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--faint); font-weight: 700; margin-bottom: 8px;
+}
+.login-input-wrap { position: relative; margin-bottom: 20px; }
+.login-input-wrap input {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.94rem; letter-spacing: 0.06em;
+    padding-left: 44px; border-color: var(--border-strong);
+}
+.login-input-wrap input:focus {
+    outline: none;
+    border-color: rgba(31,209,165,0.5);
+    box-shadow: 0 0 0 3px rgba(31,209,165,0.08);
+}
+.login-input-icon {
+    position: absolute; left: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--faint); pointer-events: none; font-size: 1rem;
+}
+
+.login-submit-btn {
+    width: 100%; min-height: 52px;
+    font-size: 1rem; font-weight: 800; letter-spacing: 0.03em;
+}
+
+/* Security note */
+.login-sec-note {
+    margin-top: 20px; padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(57,207,255,0.14);
+    background: rgba(57,207,255,0.04);
+    font-size: 0.8rem; color: var(--muted); line-height: 1.65;
+    font-family: "SFMono-Regular", Consolas, monospace;
+}
+.login-sec-note strong { color: rgba(57,207,255,0.88); }
+
+/* ── Right panel: visual context ─────────────────────────────────────────── */
+.login-right {
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 80% 20%, rgba(31,209,165,0.10), transparent 38%),
+        radial-gradient(circle at 20% 80%, rgba(57,207,255,0.08), transparent 42%),
+        linear-gradient(135deg, rgba(10,20,36,0.98) 0%, rgba(7,14,26,0.98) 100%);
+    padding: 44px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    border-left: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Animated scan line */
+.login-scan-line {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, rgba(31,209,165,0.5) 50%, transparent 100%);
+    animation: loginScanDown 4s linear infinite;
+    pointer-events: none; z-index: 2;
+}
+
+@keyframes loginScanDown {
+    0%   { top: 0%;   opacity: 1; }
+    85%  { opacity: 0.6; }
+    100% { top: 100%; opacity: 0; }
+}
+
+.login-right-title {
+    font-family: "Outfit", sans-serif;
+    font-size: 1.55rem; font-weight: 800; line-height: 1.2;
+    color: var(--text); margin: 0; position: relative; z-index: 2;
+}
+
+.login-metric-row {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; position: relative; z-index: 2;
+}
+.login-metric-card {
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.03);
+    text-align: center;
+    transition: border-color 0.22s ease;
+}
+.login-metric-card:hover { border-color: rgba(31,209,165,0.24); }
+.login-metric-val {
+    font-family: "Outfit", sans-serif;
+    font-size: 1.7rem; font-weight: 800;
+    color: var(--accent); line-height: 1;
+    margin-bottom: 6px;
+}
+.login-metric-lbl {
+    font-size: 0.74rem; color: var(--faint);
+    text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;
+}
+
+.login-capability-list {
+    display: grid; gap: 10px; position: relative; z-index: 2;
+}
+.login-cap-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.025);
+}
+.login-cap-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.login-cap-text strong {
+    display: block; font-size: 0.86rem; font-weight: 700;
+    color: var(--text); margin-bottom: 3px;
+}
+.login-cap-text span { font-size: 0.8rem; color: var(--muted); line-height: 1.55; }
+
+/* Light mode adjustments */
+[data-theme="light"] .login-left {
+    background: linear-gradient(180deg, rgba(248,252,255,0.99) 0%, rgba(240,247,255,0.99) 100%);
+}
+[data-theme="light"] .login-right {
+    background:
+        radial-gradient(circle at 80% 20%, rgba(15,157,123,0.07), transparent 38%),
+        linear-gradient(135deg, rgba(235,243,252,0.98) 0%, rgba(225,236,248,0.98) 100%);
+    border-left-color: rgba(84,106,138,0.12);
+}
+[data-theme="light"] .terminal-chrome { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.08); }
+[data-theme="light"] .login-shell { border-color: rgba(84,106,138,0.18); }
+
+@media (max-width: 780px) {
+    .login-layout { grid-template-columns: 1fr; }
+    .login-right { display: none; }
+    .login-left { padding: 32px 22px; }
+    .login-page { align-items: flex-start; padding-top: 20px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-page">
+<div class="login-layout">
+
+    <!-- ── Left: Form ──────────────────────────────────────────────────── -->
+    <div class="login-left">
+        <!-- Brand -->
+        <div class="login-brand-row">
+            <div class="login-brand-icon">🛡</div>
+            <div>
+                <div class="login-brand-name">WAQQAS</div>
+                <div class="login-brand-sub">AI Intrusion Detection System</div>
+            </div>
+        </div>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="message-stack" style="margin-bottom:18px; display:grid; gap:10px;">
+                {% for category, message in messages %}
+                <div class="message {{ category if category in ['success','error','warning','info'] else 'error' }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Terminal chrome card -->
+        <div class="terminal-chrome">
+            <div class="chrome-dot chrome-dot-red"></div>
+            <div class="chrome-dot chrome-dot-amber"></div>
+            <div class="chrome-dot chrome-dot-green"></div>
+            <div class="chrome-title">analyst-auth · secure-channel · v2</div>
+        </div>
+        <div class="login-shell">
+            <div class="login-body">
+                <div class="login-prompt">Awaiting analyst credential verification</div>
+
+                <form method="POST" action="{{ url_for('login') }}" autocomplete="off">
+                    <label class="login-field-label" for="access_key">Analyst Access Key</label>
+                    <div class="login-input-wrap">
+                        <span class="login-input-icon">⬡</span>
+                        <input
+                            type="password"
+                            id="access_key"
+                            name="access_key"
+                            placeholder="Enter your authorized access key"
+                            required
+                            autocomplete="current-password"
+                            autofocus
+                        />
+                    </div>
+                    <button type="submit" class="btn btn-primary login-submit-btn">
+                        Authenticate &amp; Enter System
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="login-sec-note">
+            <strong>$ access-policy</strong><br>
+            This gateway protects the detection dashboard, block controls, and analyst response layer.
+            Access is restricted to authorized analysts. Set your key via
+            <code>WAQQAS_ACCESS_KEY</code> environment variable.
+        </div>
+
+        <div style="margin-top:auto; padding-top:24px;">
+            <a href="/" style="color:var(--faint); font-size:0.82rem; text-decoration:none; font-weight:700; letter-spacing:0.04em;">
+                ← Return to public interface
+            </a>
+        </div>
+    </div>
+
+    <!-- ── Right: Visual context panel ────────────────────────────────── -->
+    <div class="login-right">
+        <div class="login-scan-line"></div>
+
+        <div class="login-right-title">
+            Real-time threat classification.<br>
+            Zero-compromise detection.
+        </div>
+
+        <!-- Performance metrics -->
+        <div class="login-metric-row">
+            <div class="login-metric-card">
+                <div class="login-metric-val">98.87%</div>
+                <div class="login-metric-lbl">Test Accuracy</div>
+            </div>
+            <div class="login-metric-card">
+                <div class="login-metric-val">1.73%</div>
+                <div class="login-metric-lbl">False Positive Rate</div>
+            </div>
+            <div class="login-metric-card">
+                <div class="login-metric-val">99.68%</div>
+                <div class="login-metric-lbl">Detection Rate</div>
+            </div>
+            <div class="login-metric-card">
+                <div class="login-metric-val">0.9997</div>
+                <div class="login-metric-lbl">AUC Score</div>
+            </div>
+        </div>
+
+        <!-- Capability list -->
+        <div class="login-capability-list">
+            <div class="login-cap-item">
+                <span class="login-cap-icon">⚡</span>
+                <div class="login-cap-text">
+                    <strong>Five-class threat classification</strong>
+                    <span>DoS · Reconnaissance · Privilege Escalation · Credential Abuse · Normal — classified with confidence scoring and risk tiering.</span>
+                </div>
+            </div>
+            <div class="login-cap-item">
+                <span class="login-cap-icon">🔒</span>
+                <div class="login-cap-text">
+                    <strong>Source IP control &amp; auto-block</strong>
+                    <span>High-confidence critical threats are automatically blocked. Analysts retain full manual override control.</span>
+                </div>
+            </div>
+            <div class="login-cap-item">
+                <span class="login-cap-icon">🔄</span>
+                <div class="login-cap-text">
+                    <strong>Feedback-informed retraining</strong>
+                    <span>Analyst corrections are normalized and stored. Model can be retrained without interrupting the live workflow.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status indicator -->
+        <div style="display:flex; align-items:center; gap:10px; margin-top:auto; padding-top:16px; border-top:1px solid var(--border);">
+            <span class="status-chip active-chip">Detection engine online</span>
+            <span style="font-size:0.8rem; color:var(--faint); font-family:monospace;">Waqqas IDS · Multi-model ensemble</span>
+        </div>
+    </div>
+
+</div>
+</div>
+{% endblock %}

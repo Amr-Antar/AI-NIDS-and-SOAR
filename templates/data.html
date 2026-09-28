@@ -1,0 +1,1511 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | Waqqas IDS{% endblock %}
+
+{% block head_extra %}
+<style>
+/* ── Dashboard page extras (dark only) ───────────────────────────────────── */
+.upload-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 14px;
+}
+@media (max-width: 900px) { .upload-summary-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .upload-summary-grid { grid-template-columns: 1fr 1fr; } }
+
+.upload-summary-card {
+    background: rgba(13,24,39,0.96);
+    border: 1px solid rgba(67,92,124,0.35);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    transition: transform 0.22s ease, border-color 0.22s ease;
+}
+.upload-summary-card:hover { transform: translateY(-3px); border-color: rgba(31,209,165,0.28); }
+.upload-summary-card .usv {
+    font-size: 1.8rem; font-weight: 800; color: #e8f0fb;
+    line-height: 1; font-family: "Outfit", sans-serif;
+}
+.upload-summary-card .usl {
+    font-size: 0.74rem; color: #7385a0;
+    text-transform: uppercase; letter-spacing: 0.1em; margin-top: 6px; font-weight: 700;
+}
+
+.action-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 34px; padding: 6px 10px; border-radius: 10px;
+    border: 1px solid rgba(31,209,165,0.22);
+    background: linear-gradient(180deg, #152845 0%, #0d1a31 100%);
+    color: #e8f0fb; font-size: 0.76rem; font-weight: 700; cursor: pointer;
+    transition: transform 0.08s ease, box-shadow 0.18s ease, border-color 0.22s ease, color 0.22s ease;
+    box-shadow: 0 4px 0 #07111e, 0 8px 16px rgba(0,0,0,0.22);
+    white-space: nowrap;
+}
+.action-btn:hover {
+    transform: translateY(-2px); color: #1fd1a5;
+    border-color: rgba(31,209,165,0.5);
+    box-shadow: 0 6px 0 #07111e, 0 0 10px rgba(31,209,165,0.10), 0 14px 22px rgba(0,0,0,0.28);
+}
+.action-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #07111e; }
+.action-btn.danger-btn {
+    border-color: rgba(224,106,118,0.26);
+    background: linear-gradient(180deg, #3a1820 0%, #261018 100%);
+    color: #ffd5da; box-shadow: 0 4px 0 #16070b, 0 8px 16px rgba(0,0,0,0.22);
+}
+.action-btn.danger-btn:hover {
+    color: #fff; border-color: rgba(224,106,118,0.5);
+    box-shadow: 0 6px 0 #16070b, 0 0 10px rgba(224,106,118,0.18), 0 14px 22px rgba(0,0,0,0.28);
+}
+.action-btn.secondary-btn {
+    background: linear-gradient(180deg, rgba(24,37,58,0.92) 0%, rgba(14,22,37,0.96) 100%);
+    border-color: rgba(92,116,154,0.35); color: #e5eefc;
+}
+.action-btn.secondary-btn:hover { color: #27f0be; border-color: rgba(38,235,186,0.48); }
+
+/* Recent datasets (dashboard memory) */
+.recent-datasets-panel {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(57, 207, 255, 0.14);
+    background: linear-gradient(135deg, rgba(8, 18, 32, 0.92), rgba(10, 22, 38, 0.88));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.recent-datasets-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+.recent-datasets-title {
+    font-size: 0.72rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #7385a0; margin: 0;
+}
+.recent-datasets-list { display: grid; gap: 8px; }
+.recent-dataset-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 10px 12px; border-radius: 12px;
+    border: 1px solid rgba(67, 92, 124, 0.35);
+    background: rgba(7, 14, 24, 0.72);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.recent-dataset-row:hover { border-color: rgba(31, 209, 165, 0.28); }
+.recent-dataset-row.active {
+    border-color: rgba(31, 209, 165, 0.55);
+    box-shadow: 0 0 0 1px rgba(31, 209, 165, 0.12), 0 8px 20px rgba(0,0,0,0.22);
+    background: rgba(12, 28, 36, 0.88);
+}
+.recent-dataset-meta { min-width: 0; flex: 1; }
+.recent-dataset-name {
+    font-size: 0.86rem; font-weight: 700; color: #e8f0fb;
+    font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.recent-dataset-sub { font-size: 0.72rem; color: #7385a0; margin-top: 2px; }
+.recent-dataset-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.recent-dataset-actions .btn { min-height: 34px; font-size: 0.74rem; padding: 4px 10px; }
+.recent-status-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 0.65rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 999px;
+    border: 1px solid rgba(67, 92, 124, 0.4); color: #9db0cb;
+}
+.recent-status-pill.selected { border-color: rgba(31, 209, 165, 0.45); color: #1fd1a5; background: rgba(31, 209, 165, 0.08); }
+.recent-status-pill.unused { border-color: rgba(133, 160, 196, 0.35); color: #9db0cb; }
+
+.note-type-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 8px; border-radius: 999px;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+}
+.note-type-chip.block   { background: rgba(224,106,118,0.12); color: #ffd5da; border: 1px solid rgba(224,106,118,0.22); }
+.note-type-chip.unblock { background: rgba(31,209,165,0.12);  color: #9af5dd; border: 1px solid rgba(31,209,165,0.22); }
+
+.retrain-status-strip {
+    display: none; padding: 11px 14px; border-radius: 12px;
+    border: 1px solid rgba(242,196,109,0.24); background: rgba(242,196,109,0.07);
+    color: #f2c46d; font-size: 0.86rem; font-weight: 600; line-height: 1.55;
+}
+.retrain-status-strip.show { display: block; }
+.retrain-status-strip.ok   { border-color: rgba(31,209,165,0.24); background: rgba(31,209,165,0.07); color: #1fd1a5; }
+.retrain-status-strip.err  { border-color: rgba(224,106,118,0.24); background: rgba(224,106,118,0.07); color: #e06a76; }
+
+.feedback-row {
+    display: grid; gap: 8px; padding: 12px;
+    border-radius: 12px; border: 1px solid rgba(67,92,124,0.35);
+    background: rgba(7,14,24,0.82); margin-top: 8px;
+}
+.feedback-row select, .feedback-row input {
+    min-height: 38px; padding: 8px 12px; font-size: 0.85rem;
+    border-radius: 10px; border: 1px solid rgba(67,92,124,0.35);
+    background: #132135; color: #e8f0fb;
+}
+.feedback-row label { font-size: 0.78rem; color: #7385a0; font-weight: 700; margin-bottom: 2px; }
+
+.history-modal-inner {
+    display: grid; gap: 12px; max-height: 52vh; overflow-y: auto; padding-right: 4px;
+}
+.history-modal-inner::-webkit-scrollbar { width: 5px; }
+.history-modal-inner::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 4px; }
+
+/* Themed dialog (replaces all browser confirm/alert/prompt) */
+.wq-dialog-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(4,9,18,0.82);
+    backdrop-filter: blur(6px);
+    z-index: 2500;
+    display: none; align-items: center; justify-content: center;
+}
+.wq-dialog-backdrop.show { display: flex; }
+.wq-dialog {
+    width: min(92vw, 480px);
+    background: linear-gradient(180deg, rgba(12,22,38,0.99), rgba(8,15,26,0.99));
+    border: 1px solid rgba(95,125,166,0.42);
+    border-radius: 18px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+    overflow: hidden;
+    animation: modalAppear 0.2s ease forwards;
+}
+.wq-dialog-head { padding: 20px 22px 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.wq-dialog-title { font-size: 1.1rem; font-weight: 800; font-family: "Outfit", sans-serif; color: #e8f0fb; margin: 0; }
+.wq-dialog-body { padding: 14px 22px 22px; }
+.wq-dialog-msg { color: #9db0cb; font-size: 0.9rem; line-height: 1.7; margin: 0 0 18px; }
+.wq-dialog-input {
+    width: 100%; min-height: 44px; padding: 10px 14px;
+    border-radius: 12px; border: 1px solid rgba(95,125,166,0.42);
+    background: #132135; color: #e8f0fb; font-size: 0.92rem; margin-bottom: 16px;
+}
+.wq-dialog-input:focus { outline: none; border-color: rgba(31,209,165,0.5); box-shadow: 0 0 0 3px rgba(31,209,165,0.08); }
+.wq-dialog-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+@media (max-width: 480px) { .wq-dialog-actions { flex-direction: column; } .wq-dialog-actions .btn { width: 100%; } }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Threat banner -->
+<div class="live-banner" id="threat-banner" style="display:none;">
+    <div class="live-banner-inner">
+        <div>
+            <div class="banner-title">⚠ Threat activity detected in uploaded file</div>
+            <div class="banner-text" id="banner-text">Review results below and take action.</div>
+        </div>
+        <div class="hero-actions">
+            <button class="btn btn-danger btn-sm" onclick="scrollToLiveResults()">View Threats</button>
+            <button class="btn btn-ghost btn-sm" onclick="dismissBanner()">Dismiss</button>
+        </div>
+    </div>
+</div>
+
+<!-- Hero -->
+<section class="hero-panel" style="min-height:auto; margin-bottom:24px;">
+    <div class="hero-main">
+        <p class="eyebrow">Security Operations Center</p>
+        <h1>Intrusion Detection <span class="waqqas-mark">Dashboard</span></h1>
+        <p class="hero-text">
+            Upload structured connection records, classify traffic against the trained ensemble,
+            investigate detected threats by source IP, apply block decisions, capture analyst
+            feedback, and trigger adaptive retraining — all from one controlled workspace.
+        </p>
+    </div>
+    <div class="hero-side hero-highlight">
+        <span class="status-chip active-chip">Model operational</span>
+        <p class="hero-file">
+            Five-class intrusion detection · Confidence-aware escalation ·
+            Auto-block for critical threats · Analyst feedback loop
+        </p>
+        <div class="hero-actions" style="margin-top:18px;">
+            <a href="/analysis" class="btn btn-secondary link-btn" style="min-width:0;min-height:44px;font-size:0.86rem;">Analysis View</a>
+            <a href="/logout" class="btn btn-ghost link-btn" style="min-width:0;min-height:44px;font-size:0.86rem;">Sign Out</a>
+        </div>
+    </div>
+</section>
+
+<!-- Stat cards -->
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr); margin-bottom:24px;">
+    <div class="stat-card reveal">
+        <span class="stat-label">Total Stored Connections</span>
+        <div class="stat-value" id="stat-total">{{ total_connections or 0 }}</div>
+        <p class="stat-note">All predictions recorded across every upload session.</p>
+    </div>
+    <div class="stat-card reveal">
+        <span class="stat-label">Unique Attack Families</span>
+        <div class="stat-value" id="stat-types">{{ attack_counts|length if attack_counts else 0 }}</div>
+        <p class="stat-note">Distinct threat categories identified in stored records.</p>
+    </div>
+    <div class="stat-card reveal">
+        <span class="stat-label">Blocked Source IPs</span>
+        <div class="stat-value" id="stat-blocked">{{ total_blocked or 0 }}</div>
+        <p class="stat-note">Source addresses currently in the active block registry.</p>
+    </div>
+</div>
+
+<!-- Upload + breakdown grid -->
+<div class="dashboard-grid" style="margin-bottom:24px;">
+
+    <!-- Upload panel -->
+    <div class="panel">
+        <div class="section-head">
+            <div>
+                <p class="section-kicker">Traffic Ingestion</p>
+                <h2>Upload &amp; Classify</h2>
+            </div>
+        </div>
+        <form id="prediction-form" class="section-gap" autocomplete="off">
+            <div class="upload-dropzone">
+                <label class="upload-label" for="csv-file">Connection traffic CSV</label>
+                <input type="file" id="csv-file" name="file" accept=".csv" required />
+                <p class="form-hint">
+                    Upload a structured connection-record CSV in the platform’s expected layout.
+                    Include <code>source_ip</code> when you want IP-level investigation and blocking.
+                    The system validates and normalizes your file before classification.
+                </p>
+            </div>
+            <div class="server-csv-collapsible" id="server-csv-collapsible" style="display:none;">
+                <button type="button" class="server-csv-toggle" id="server-csv-toggle" aria-expanded="false" aria-controls="server-csv-popover">
+                    <span>Compatible CSV files on server</span>
+                    <span style="display:inline-flex;align-items:center;gap:8px;">
+                        <span class="server-csv-badge" id="server-csv-badge">0</span>
+                        <span class="server-csv-chevron" aria-hidden="true"></span>
+                    </span>
+                </button>
+                <div id="server-csv-popover" class="server-csv-popover" role="region" aria-label="Compatible CSV files on server">
+                    <div class="server-csv-list" id="server-csv-list"></div>
+                </div>
+            </div>
+            <div class="recent-datasets-panel" id="recent-datasets-panel" style="display:none;">
+                <div class="recent-datasets-head">
+                    <p class="recent-datasets-title">Recent datasets</p>
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                        <span class="muted-small" style="font-size:0.72rem;">Last runs on this browser</span>
+                        <button type="button" class="btn btn-ghost btn-sm" id="recent-datasets-reset" onclick="resetRecentDatasetMemory()">Reset list</button>
+                    </div>
+                </div>
+                <div class="recent-datasets-list" id="recent-datasets-list"></div>
+            </div>
+            <div class="action-group">
+                <button class="btn btn-primary" type="submit" id="run-btn">Run Detection</button>
+                <button class="btn btn-secondary" type="button" onclick="confirmClearRecords()">Clear Stored Records</button>
+            </div>
+        </form>
+
+        <div id="message-box" class="message-stack" style="display:none; margin-top:14px;"></div>
+
+        <!-- Upload summary counters -->
+        <div id="live-summary-grid" class="upload-summary-grid" style="display:none;">
+            <div class="upload-summary-card">
+                <div class="usv" id="summary-total">0</div>
+                <div class="usl">Rows</div>
+            </div>
+            <div class="upload-summary-card">
+                <div class="usv" id="summary-safe" style="color:#1fd1a5;">0</div>
+                <div class="usl">Safe</div>
+            </div>
+            <div class="upload-summary-card">
+                <div class="usv" id="summary-danger" style="color:#e06a76;">0</div>
+                <div class="usl">Threats</div>
+            </div>
+            <div class="upload-summary-card">
+                <div class="usv" id="summary-unknown" style="color:#a88cff;">0</div>
+                <div class="usl">Suspicious</div>
+            </div>
+        </div>
+
+        <!-- Inline threat alert list -->
+        <div id="threat-alert-box" style="display:none; margin-top:14px;"></div>
+    </div>
+
+    <!-- Breakdown + retrain -->
+    <div class="panel">
+        <div class="section-head">
+            <div>
+                <p class="section-kicker">Stored Distribution</p>
+                <h2>Prediction Breakdown</h2>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table id="breakdown-table">
+                <thead>
+                    <tr>
+                        <th>Attack Family</th>
+                        <th style="width:90px; text-align:right;">Count</th>
+                    </tr>
+                </thead>
+                <tbody id="breakdown-tbody">
+                    {% if attack_counts %}
+                        {% for item in attack_counts %}
+                        {% set fam = item.display_prediction or item.prediction %}
+                        <tr class="breakdown-row {{ fam | breakdown_family_class }}" tabindex="0" role="button" data-family="{{ fam }}">
+                            <td data-label="Attack Family">{{ fam }}</td>
+                            <td data-label="Count" style="text-align:right; font-weight:700;">{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr><td colspan="2" data-label="Status">No prediction data stored yet.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Retrain -->
+        <div style="margin-top:24px; border-top:1px solid rgba(67,92,124,0.35); padding-top:18px;">
+            <p class="section-kicker">Adaptive Learning</p>
+            <p style="color:#9db0cb; font-size:0.88rem; line-height:1.7; margin-bottom:14px;">
+                Model refresh rebuilds the detection engine from the platform’s curated training corpus.
+                The cycle runs in the background without interrupting live classification. When it finishes,
+                open <em>Analysis</em> to review updated accuracy and detection metrics.
+            </p>
+            <div class="action-group">
+                <button class="btn btn-primary" onclick="triggerRetrain()" id="retrain-btn">Retrain Model</button>
+                <button class="btn btn-secondary" onclick="pollRetrainStatus()">Check Status</button>
+                <a href="/export-feedback-csv" class="btn btn-ghost link-btn" style="min-width:0;min-height:46px;font-size:0.86rem;">Export Feedback</a>
+            </div>
+            <div class="retrain-status-strip" id="retrain-status-strip" style="margin-top:12px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Live upload results -->
+<section class="panel" id="live-panel" style="display:none; margin-bottom:24px;">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Current File Results</p>
+            <h2>Latest Upload — Classified Records</h2>
+        </div>
+        <div class="action-group">
+            <button class="btn btn-ghost btn-sm" onclick="hideLivePanel()">Dismiss</button>
+        </div>
+    </div>
+    <div id="live-results-wrap" class="table-wrap"></div>
+</section>
+
+<!-- Latest Classified Connections -->
+<section class="panel" style="margin-bottom:24px;">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Detection History</p>
+            <h2>Latest Classified Connections</h2>
+        </div>
+        <div class="action-group">
+            <button class="btn btn-ghost btn-sm" onclick="confirmClearRecords()">Clear Records</button>
+        </div>
+    </div>
+
+    <div id="recent-connections-wrap">
+        {% if recent_connections %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:6%;">ID</th>
+                        <th style="width:13%;">Timestamp</th>
+                        <th style="width:13%;">Source IP</th>
+                        <th style="width:18%;">Classification</th>
+                        <th style="width:26%;">Decision Reason</th>
+                        <th style="width:24%;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="recent-tbody">
+                    {% for item in recent_connections %}
+                    <tr id="row-{{ item.id }}">
+                        <td data-label="#"><span class="cell-main">#{{ item.id }}</span></td>
+                        <td data-label="Timestamp"><span class="cell-main" style="font-size:0.8rem;">{{ item.timestamp or 'N/A' }}</span></td>
+                        <td data-label="Source IP"><span class="cell-main mono">{{ item.source_ip or '—' }}</span></td>
+                        <td data-label="Classification">
+                            <div class="cell-stack">
+                                <span class="cell-main">{{ item.display_prediction or item.prediction }}</span>
+                                <span class="badge {{ item.risk_level }}">{{ item.risk_level|capitalize }}</span>
+                                <span class="cell-sub">Conf: {{ '%.4f'|format(item.confidence) }}</span>
+                            </div>
+                        </td>
+                        <td data-label="Decision Reason">
+                            <span class="table-note">{{ item.decision_reason }}</span>
+                        </td>
+                        <td data-label="Actions">
+                            <div class="cell-stack">
+                                {% if item.is_blocked_ref %}
+                                    <span class="badge blocked">Blocked</span>
+                                    {% if item.source_ip %}
+                                    <button type="button" class="action-btn secondary-btn js-dash-action"
+                                        data-action="unblock"
+                                        data-meta='{{ {"ip": item.source_ip, "p": item.prediction, "c": item.confidence}|tojson }}'>
+                                        Unblock IP</button>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge allowed">Not Blocked</span>
+                                    {% if item.source_ip %}
+                                    <button type="button" class="action-btn danger-btn js-dash-action"
+                                        data-action="block"
+                                        data-meta='{{ {"ip": item.source_ip, "p": item.prediction, "c": item.confidence}|tojson }}'>
+                                        Block IP</button>
+                                    {% endif %}
+                                {% endif %}
+                                <button type="button" class="action-btn secondary-btn js-dash-action" style="margin-top:4px;"
+                                    data-action="feedback-toggle" data-id="{{ item.id }}">Give Feedback</button>
+                                {% if item.feedback_label %}
+                                    <span class="cell-sub">Feedback: {{ item.feedback_label|replace('_',' ')|capitalize }}</span>
+                                {% endif %}
+                                {% if item.corrected_label %}
+                                    <span class="cell-sub">Corrected: {{ item.corrected_label }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="feedback-row" id="feedback-row-{{ item.id }}" style="display:none;">
+                                <label>Feedback type</label>
+                                <select id="fb-label-{{ item.id }}">
+                                    <option value="correct">Correct — prediction is accurate</option>
+                                    <option value="false_positive">False Positive — not an attack</option>
+                                    <option value="false_negative">False Negative — attack was missed</option>
+                                    <option value="needs_review">Needs Review — uncertain</option>
+                                </select>
+                                <label>Corrected label (optional)</label>
+                                <input type="text" id="fb-corrected-{{ item.id }}"
+                                    placeholder="Normal / DoS / Probe / U2R / R2L" />
+                                <button type="button" class="action-btn js-dash-action"
+                                    data-action="feedback-save"
+                                    data-meta='{{ {"id": item.id, "ip": item.source_ip}|tojson }}'>
+                                    Save Feedback</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-box" id="recent-empty">
+            <h3>No classified connections yet</h3>
+            <p>Upload a valid CSV file above to populate this table with detection results.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Block / Unblock activity log -->
+<section class="panel" style="margin-bottom:24px;">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Audit Trail</p>
+            <h2>Block / Unblock Activity Log</h2>
+        </div>
+        <div class="action-group">
+            <button class="btn btn-ghost btn-sm" onclick="clearBlockNotes()">Clear &amp; Archive</button>
+            <button class="btn btn-ghost btn-sm" onclick="openHistoryModal()">View History</button>
+        </div>
+    </div>
+
+    <div id="block-reasons-list" class="stack-list">
+        {% if block_notes %}
+            {% for note in block_notes %}
+            <div class="reason-card">
+                <div class="reason-head">
+                    <div class="reason-title">
+                        <span class="note-type-chip {{ note.note_type }}">{{ note.note_type|upper }}</span>
+                        <span class="cell-main mono">{{ note.source_ip }}</span>
+                    </div>
+                    <span class="muted-small">{{ note.created_at or 'N/A' }}</span>
+                </div>
+                <div class="reason-text">{{ note.note_text }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="empty-box" id="block-reasons-empty">
+            <h3>No block or unblock events recorded</h3>
+            <p>Block decisions and auto-block triggers will appear here with full audit context.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- ══ MODALS ══════════════════════════════════════════════════════════════ -->
+
+<!-- Alert modal (red threat) -->
+<div class="modal-backdrop-custom" id="alert-backdrop" onclick="closeAlertModal()"></div>
+<div class="modal-shell" id="alert-modal" role="alertdialog" aria-modal="true">
+    <div class="modal-head">
+        <h2 class="modal-title-main" id="alert-modal-title">Suspicious activity detected</h2>
+        <button class="modal-close" onclick="closeAlertModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+        <div class="modal-grid" id="alert-modal-grid"></div>
+        <div class="modal-actions">
+            <button class="btn btn-danger" id="alert-block-btn" onclick="alertBlockIp()">Block IP</button>
+            <button class="btn btn-secondary" onclick="closeAlertModal()">Ignore</button>
+            <button class="btn btn-ghost" onclick="closeAlertModal(); scrollToLiveResults();">View Details</button>
+        </div>
+    </div>
+</div>
+
+<!-- Unblock modal -->
+<div class="modal-backdrop-custom" id="unblock-backdrop" onclick="closeUnblockModal()"></div>
+<div class="modal-shell" id="unblock-modal" role="dialog" aria-modal="true"
+    style="border-color:rgba(31,209,165,0.28); background:linear-gradient(180deg,rgba(10,26,20,0.99),rgba(8,18,14,0.99));">
+    <div class="modal-head">
+        <h2 class="modal-title-main" style="color:#c8f8e8;">Unblock IP Address</h2>
+        <button class="modal-close" onclick="closeUnblockModal()" style="color:#c8f8e8;" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+        <div class="modal-grid" id="unblock-modal-grid"></div>
+        <div class="section-gap">
+            <label style="font-size:0.86rem;color:#9db0cb;font-weight:700;">Reason for unblocking (required)</label>
+            <input type="text" id="unblock-reason-input"
+                placeholder="e.g. False positive confirmed by analyst review"
+                style="border-radius:12px;min-height:44px;" />
+        </div>
+        <div class="modal-actions" style="margin-top:16px;">
+            <button class="btn btn-primary" onclick="confirmUnblock()">Confirm Unblock</button>
+            <button class="btn btn-ghost" onclick="closeUnblockModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- History modal -->
+<div class="modal-backdrop-custom" id="history-backdrop" onclick="closeHistoryModal()"></div>
+<div class="modal-shell" id="history-modal" role="dialog" aria-modal="true"
+    style="width:min(94vw,780px);border-color:rgba(88,166,255,0.22);background:linear-gradient(180deg,rgba(10,20,38,0.99),rgba(7,14,28,0.99));">
+    <div class="modal-head">
+        <h2 class="modal-title-main" style="color:#d7ebff;">Archived Block &amp; Unblock Log</h2>
+        <button class="modal-close" onclick="closeHistoryModal()" style="color:#d7ebff;" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+        <p style="color:#9db0cb;font-size:0.86rem;margin-bottom:14px;line-height:1.6;">
+            These entries were archived when the live log was cleared. Preserved for audit purposes.
+        </p>
+        <div class="history-modal-inner" id="history-modal-list">
+            <div style="color:#7385a0;font-size:0.88rem;">Loading…</div>
+        </div>
+        <div class="modal-actions" style="margin-top:18px;flex-wrap:wrap;gap:10px;">
+            <button class="btn btn-ghost" onclick="closeHistoryModal()">Close</button>
+            <button class="btn btn-danger" onclick="openDeleteHistoryDialog()" style="margin-left:auto;">Delete History</button>
+        </div>
+    </div>
+</div>
+
+<!-- Themed dialog (replaces all browser confirm/alert/prompt) -->
+<div class="wq-dialog-backdrop" id="wq-dialog-backdrop">
+    <div class="wq-dialog" id="wq-dialog">
+        <div class="wq-dialog-head">
+            <h3 class="wq-dialog-title" id="wq-dialog-title">Confirm action</h3>
+            <button class="modal-close" onclick="closeWqDialog()" aria-label="Close">✕</button>
+        </div>
+        <div class="wq-dialog-body">
+            <p class="wq-dialog-msg" id="wq-dialog-msg"></p>
+            <p class="wq-dialog-error" id="wq-dialog-error" role="alert"></p>
+            <input type="password" class="wq-dialog-input" id="wq-dialog-input"
+                   placeholder="Enter password" style="display:none;" />
+            <div class="wq-dialog-actions" id="wq-dialog-actions"></div>
+        </div>
+    </div>
+</div>
+
+<script type="application/json" id="wq-bootstrap-alerts">{{ latest_upload_alert_items|default([])|tojson }}</script>
+<script type="application/json" id="wq-bootstrap-results">{{ latest_upload_results|default([])|tojson }}</script>
+<script type="application/json" id="wq-bootstrap-threat-count">{{ latest_upload_threat_count|default(0)|tojson }}</script>
+<script type="application/json" id="wq-bootstrap-active-dataset">{{ active_dataset_filename|default('')|tojson }}</script>
+<script type="application/json" id="wq-bootstrap-saved-csvs">{{ saved_csv_files|default([])|tojson }}</script>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Dashboard client logic
+const form            = document.getElementById("prediction-form");
+const fileInput       = document.getElementById("csv-file");
+const messageBox      = document.getElementById("message-box");
+const livePanel       = document.getElementById("live-panel");
+const liveWrap        = document.getElementById("live-results-wrap");
+const liveSummaryGrid = document.getElementById("live-summary-grid");
+const threatAlertBox  = document.getElementById("threat-alert-box");
+const threatBanner    = document.getElementById("threat-banner");
+
+let _alertIp = null, _alertPred = null, _alertConf = null;
+let _unblockIp = null, _unblockPred = null, _unblockConf = null;
+let _currentLiveResults = [];
+let _activeDatasetName = "";
+let _savedCsvFiles = [];
+
+// ── Utility ───────────────────────────────────────────────────────────────────
+function esc(v) {
+    return String(v == null ? "" : v)
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+}
+function escAttr(v) {
+    return String(v == null ? "" : v)
+        .replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+}
+function showMessage(type, html) {
+    messageBox.style.display = "grid";
+    messageBox.innerHTML = '<div class="message ' + esc(type) + '">' + html + '</div>';
+}
+function hideMessage() { messageBox.style.display = "none"; messageBox.innerHTML = ""; }
+function scrollToLiveResults() { document.getElementById("live-panel") && document.getElementById("live-panel").scrollIntoView({behavior:"smooth",block:"start"}); }
+function hideLivePanel() { livePanel.style.display = "none"; }
+function dismissBanner() { threatBanner.style.display = "none"; }
+
+// ── Themed dialog (no browser confirm/alert/prompt) ───────────────────────────
+var _wqDialogResolve = null;
+function openWqDialog(opts) {
+    return new Promise(function(resolve) {
+        _wqDialogResolve = resolve;
+        document.getElementById("wq-dialog-title").textContent = opts.title || "Confirm";
+        document.getElementById("wq-dialog-msg").textContent   = opts.msg || "";
+        var errEl = document.getElementById("wq-dialog-error");
+        if (errEl) {
+            if (opts.error) {
+                errEl.textContent = opts.error;
+                errEl.classList.add("show");
+            } else {
+                errEl.textContent = "";
+                errEl.classList.remove("show");
+            }
+        }
+        var inp = document.getElementById("wq-dialog-input");
+        if (opts.input) {
+            inp.style.display = "block";
+            inp.value = "";
+            inp.type = (opts.inputPlaceholder || "").toLowerCase().indexOf("password") !== -1 ? "password" : "text";
+            inp.placeholder = opts.inputPlaceholder || "";
+        } else {
+            inp.style.display = "none";
+        }
+        var actEl = document.getElementById("wq-dialog-actions");
+        actEl.innerHTML = "";
+        (opts.buttons || []).forEach(function(btn) {
+            var el = document.createElement("button");
+            el.className = "btn " + (btn.cls || "btn-ghost");
+            el.style.minHeight = "44px";
+            el.textContent = btn.label;
+            el.onclick = function() {
+                var inputVal = opts.input ? document.getElementById("wq-dialog-input").value : null;
+                var res = {action: btn.action, inputVal: inputVal};
+                document.getElementById("wq-dialog-backdrop").classList.remove("show");
+                if (_wqDialogResolve) {
+                    var fn = _wqDialogResolve;
+                    _wqDialogResolve = null;
+                    fn(res);
+                }
+            };
+            actEl.appendChild(el);
+        });
+        document.getElementById("wq-dialog-backdrop").classList.add("show");
+    });
+}
+function closeWqDialog() {
+    document.getElementById("wq-dialog-backdrop").classList.remove("show");
+    if (_wqDialogResolve) {
+        _wqDialogResolve({action:"cancel", inputVal:null});
+        _wqDialogResolve = null;
+    }
+}
+
+// ── Level badge ───────────────────────────────────────────────────────────────
+function levelBadge(level) {
+    var l = esc((level || "safe").toLowerCase());
+    var labels = {safe:"Safe",danger:"Danger",critical:"Critical",unknown:"Unknown",blocked:"Blocked",allowed:"Not Blocked"};
+    return '<span class="badge ' + l + '">' + (labels[l] || l) + '</span>';
+}
+
+function normalizeDatasetName(name) {
+    if (!name) return "";
+    var base = String(name).replace(/\\/g, "/").split("/").pop();
+    return base.trim().toLowerCase();
+}
+function isActiveDataset(name) {
+    return normalizeDatasetName(name) === normalizeDatasetName(getActiveDatasetName());
+}
+
+function renderLiveResults(results) {
+    _currentLiveResults = Array.isArray(results) ? results.slice() : [];
+    _recordHighlightFamily = "";
+    if (!_currentLiveResults.length) {
+        livePanel.style.display = "none";
+        if (liveWrap) liveWrap.innerHTML = "";
+        return;
+    }
+    var rows = _currentLiveResults.map(function(row, idx) {
+        var rowNum = idx + 1;
+        var family = String(row.display_prediction || row.prediction || "");
+        var blockBtn = "";
+        if (!row.is_blocked && row.source_ip) {
+            blockBtn = '<button type="button" class="action-btn danger-btn js-dash-action" style="margin-top:4px;" data-action="block" data-meta="' +
+                escAttr(JSON.stringify({ip: row.source_ip, p: row.prediction, c: +row.confidence})) +
+                '">Block IP</button>';
+        } else if (row.is_blocked) {
+            blockBtn = '<span class="badge blocked" style="font-size:0.7rem;">Blocked</span>';
+        }
+        return '<tr class="live-result-row" id="live-row-' + rowNum + '" data-prediction-family="' + escAttr(family) + '">' +
+            '<td data-label="Row"><span class="cell-main">' + rowNum + '</span></td>' +
+            '<td data-label="Source"><div class="cell-stack"><span class="cell-main mono">' + esc(row.source_ip || "—") + '</span>' + blockBtn + '</div></td>' +
+            '<td data-label="Classification"><div class="cell-stack"><span class="cell-main">' + esc(row.display_prediction || row.prediction) + '</span>' + levelBadge(row.risk_level) + '<span class="cell-sub">Conf: ' + esc(row.confidence) + '</span></div></td>' +
+            '<td data-label="Decision"><span class="table-note">' + esc(row.decision_reason || "") + '</span></td>' +
+            '<td data-label="Auto-block"><span class="cell-sub">' + (row.auto_blocked ? "⚡ Auto-blocked" : "—") + '</span></td>' +
+            '</tr>';
+    }).join("");
+    liveWrap.innerHTML = '<table><thead><tr><th style="width:8%;">Row</th><th style="width:18%;">Source IP</th><th style="width:22%;">Classification</th><th style="width:36%;">Decision Reason</th><th style="width:16%;">Auto-block</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    livePanel.style.display = "block";
+    if (_recordHighlightFamily) highlightLiveRecordsByFamily(_recordHighlightFamily);
+}
+
+function highlightLiveRecordsByFamily(family) {
+    _recordHighlightFamily = family || "";
+    if (!liveWrap) return;
+    var target = String(family || "").trim();
+    liveWrap.querySelectorAll(".live-result-row").forEach(function(tr) {
+        var match = tr.getAttribute("data-prediction-family") === target;
+        tr.classList.toggle("record-highlight-glow", match);
+    });
+}
+
+var _recordHighlightFamily = "";
+
+function breakdownFamilyClass(family) {
+    var n = String(family || "").toLowerCase();
+    if (n.indexOf("normal") >= 0) return "breakdown-fam-normal";
+    if (n.indexOf("denial") >= 0 || n.indexOf("dos") >= 0) return "breakdown-fam-dos";
+    if (n.indexOf("reconnaissance") >= 0 || n.indexOf("scanning") >= 0 || n.indexOf("probe") >= 0) return "breakdown-fam-probe";
+    if (n.indexOf("privilege") >= 0 || n.indexOf("u2r") >= 0) return "breakdown-fam-u2r";
+    if (n.indexOf("credential") >= 0 || n.indexOf("r2l") >= 0) return "breakdown-fam-r2l";
+    if (n.indexOf("unknown") >= 0 || n.indexOf("suspicious") >= 0) return "breakdown-fam-unknown";
+    return "breakdown-fam-unknown";
+}
+
+function bindBreakdownRow(row) {
+    function activate() {
+        var family = row.getAttribute("data-family");
+        if (!family) return;
+        document.querySelectorAll("#breakdown-tbody .breakdown-row").forEach(function(r) {
+            r.classList.toggle("breakdown-active", r === row);
+        });
+        highlightLiveRecordsByFamily(family);
+        scrollToLiveResults();
+    }
+    row.addEventListener("click", activate);
+    row.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activate(); }
+    });
+}
+
+function initBreakdownTableInteractions() {
+    var tbody = document.getElementById("breakdown-tbody");
+    if (!tbody) return;
+    tbody.querySelectorAll(".breakdown-row").forEach(bindBreakdownRow);
+}
+
+// ── Refresh recent connections table via API ──────────────────────────────────
+function refreshRecentConnectionsTable() {
+    return fetch("/api/recent-connections")
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (!data.connections) return;
+            buildRecentTable(data.connections);
+        })
+        .catch(function(e) { console.warn("Failed to refresh connections:", e.message); });
+}
+
+function buildRecentTable(connections) {
+    var wrap = document.getElementById("recent-connections-wrap");
+    if (!connections || !connections.length) {
+        wrap.innerHTML = '<div class="empty-box" id="recent-empty"><h3>No classified connections yet</h3><p>Upload a valid CSV file to populate this table.</p></div>';
+        return;
+    }
+    var rows = connections.map(function(item) {
+        var blockSection = "";
+        if (item.is_blocked_ref) {
+            blockSection = '<span class="badge blocked">Blocked</span>';
+            if (item.source_ip) {
+                blockSection += '<button type="button" class="action-btn secondary-btn js-dash-action" data-action="unblock" data-meta="' +
+                    escAttr(JSON.stringify({ip: item.source_ip, p: item.prediction, c: +item.confidence})) +
+                    '">Unblock IP</button>';
+            }
+        } else {
+            blockSection = '<span class="badge allowed">Not Blocked</span>';
+            if (item.source_ip) {
+                blockSection += '<button type="button" class="action-btn danger-btn js-dash-action" data-action="block" data-meta="' +
+                    escAttr(JSON.stringify({ip: item.source_ip, p: item.prediction, c: +item.confidence})) +
+                    '">Block IP</button>';
+            }
+        }
+        var fbSection = "";
+        if (item.feedback_label) fbSection += '<span class="cell-sub">Feedback: ' + esc(item.feedback_label.replace(/_/g," ")) + '</span>';
+        if (item.corrected_label) fbSection += '<span class="cell-sub">Corrected: ' + esc(item.corrected_label) + '</span>';
+        return '<tr id="row-' + esc(item.id) + '">' +
+            '<td data-label="ID"><span class="cell-main">#' + esc(item.id) + '</span></td>' +
+            '<td data-label="Timestamp"><span class="cell-main" style="font-size:0.8rem;">' + esc(item.timestamp || "N/A") + '</span></td>' +
+            '<td data-label="Source IP"><span class="cell-main mono">' + esc(item.source_ip || "—") + '</span></td>' +
+            '<td data-label="Classification"><div class="cell-stack"><span class="cell-main">' + esc(item.display_prediction || item.prediction) + '</span>' + levelBadge(item.risk_level) + '<span class="cell-sub">Conf: ' + parseFloat(item.confidence).toFixed(4) + '</span></div></td>' +
+            '<td data-label="Decision"><span class="table-note">' + esc(item.decision_reason || "") + '</span></td>' +
+            '<td data-label="Actions"><div class="cell-stack">' + blockSection +
+            '<button type="button" class="action-btn secondary-btn js-dash-action" style="margin-top:4px;" data-action="feedback-toggle" data-id="' + escAttr(String(item.id)) + '">Give Feedback</button>' +
+            fbSection + '</div>' +
+            '<div class="feedback-row" id="feedback-row-' + escAttr(String(item.id)) + '" style="display:none;">' +
+            '<label>Feedback type</label>' +
+            '<select id="fb-label-' + escAttr(String(item.id)) + '"><option value="correct">Correct — accurate</option><option value="false_positive">False Positive</option><option value="false_negative">False Negative</option><option value="needs_review">Needs Review</option></select>' +
+            '<label>Corrected label (optional)</label>' +
+            '<input type="text" id="fb-corrected-' + escAttr(String(item.id)) + '" placeholder="Normal / DoS / Probe / U2R / R2L" />' +
+            '<button type="button" class="action-btn js-dash-action" data-action="feedback-save" data-meta="' +
+            escAttr(JSON.stringify({id: item.id, ip: item.source_ip})) +
+            '">Save Feedback</button></div></td></tr>';
+    }).join("");
+    wrap.innerHTML = '<div class="table-wrap"><table><thead><tr><th style="width:6%;">ID</th><th style="width:13%;">Timestamp</th><th style="width:13%;">Source IP</th><th style="width:18%;">Classification</th><th style="width:26%;">Decision Reason</th><th style="width:24%;">Actions</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+}
+
+// ── Refresh stat cards ─────────────────────────────────────────────────────────
+function refreshStatCards() {
+    return fetch("/api/stats-live")
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (!data) return;
+            var el = function(id) { return document.getElementById(id); };
+            if (el("stat-total"))   el("stat-total").textContent   = data.total_connections || 0;
+            if (el("stat-types"))   el("stat-types").textContent   = (data.attack_counts || []).length;
+            if (el("stat-blocked")) el("stat-blocked").textContent = data.total_blocked || 0;
+            updateBreakdownFromCounts(data.attack_counts || []);
+        })
+        .catch(function() {});
+}
+
+// ── Upload summary ─────────────────────────────────────────────────────────────
+function renderSummary(results) {
+    var total=0, safe=0, threat=0, unknown=0;
+    (results || []).forEach(function(r) {
+        total++;
+        var l = (r.risk_level || "").toLowerCase();
+        if (l === "safe") safe++;
+        else if (l === "unknown") unknown++;
+        else threat++;
+    });
+    document.getElementById("summary-total").textContent   = total;
+    document.getElementById("summary-safe").textContent    = safe;
+    document.getElementById("summary-danger").textContent  = threat;
+    document.getElementById("summary-unknown").textContent = unknown;
+    liveSummaryGrid.style.display = "grid";
+}
+
+// ── Threat alert list ──────────────────────────────────────────────────────────
+function showThreatAlert(items) {
+    if (!items || !items.length) { threatAlertBox.style.display = "none"; return; }
+    var lines = items.slice(0,6).map(function(item) {
+        return '<li><strong>' + esc(item.display_prediction || item.prediction) + '</strong> — IP: <span class="mono">' + esc(item.source_ip || "N/A") + '</span>, conf: ' + esc(item.confidence) + ', risk: ' + esc(item.risk_level) + (item.auto_blocked ? ', <em>auto-blocked</em>' : '') + '.</li>';
+    }).join("");
+    threatAlertBox.style.display = "block";
+    threatAlertBox.innerHTML = '<div class="alert-box" style="margin-top:8px;"><strong>Threat summary</strong><p class="alert-subtext">' + esc(items.length) + ' suspicious or hostile record(s) detected.</p><ul>' + lines + '</ul></div>';
+}
+
+function showThreatBanner(count, items) {
+    if (!count || !items || !items.length) return;
+    var top = items[0];
+    document.getElementById("banner-text").textContent = count + " threat(s) detected — highest risk: " + (top.display_prediction || top.prediction) + " from " + (top.source_ip || "unknown source") + ".";
+    threatBanner.style.display = "block";
+}
+
+// ── Breakdown table ────────────────────────────────────────────────────────────
+function updateBreakdownFromCounts(counts) {
+    var tbody = document.getElementById("breakdown-tbody");
+    if (!tbody) return;
+    if (!counts || !counts.length) {
+        tbody.innerHTML = '<tr><td colspan="2">No prediction data stored yet.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = counts.map(function(f) {
+        var label = f.display_prediction || f.prediction;
+        var famCls = breakdownFamilyClass(label);
+        return '<tr class="breakdown-row ' + famCls + '" tabindex="0" role="button" data-family="' + escAttr(label) + '"><td data-label="Attack Family">' + esc(label) + '</td><td data-label="Count" style="text-align:right;font-weight:700;">' + esc(f.count) + '</td></tr>';
+    }).join("");
+    tbody.querySelectorAll(".breakdown-row").forEach(bindBreakdownRow);
+}
+
+// ── Alert modal ────────────────────────────────────────────────────────────────
+function openAlertModal(item) {
+    _alertIp = item.source_ip; _alertPred = item.prediction; _alertConf = item.confidence;
+    document.getElementById("alert-modal-title").textContent = item.risk_level === "critical" ? "Critical threat detected" : "Suspicious activity detected";
+    document.getElementById("alert-modal-grid").innerHTML =
+        '<div class="modal-stat"><div class="modal-stat-label">Attack Type</div><div class="modal-stat-value">' + esc(item.display_prediction || item.prediction) + '</div></div>' +
+        '<div class="modal-stat"><div class="modal-stat-label">Source IP</div><div class="modal-stat-value mono">' + esc(item.source_ip || "Unknown") + '</div></div>' +
+        '<div class="modal-stat"><div class="modal-stat-label">Confidence</div><div class="modal-stat-value">' + esc(item.confidence) + '</div></div>' +
+        '<div class="modal-stat"><div class="modal-stat-label">Risk Level</div><div class="modal-stat-value">' + esc((item.risk_level || "").toUpperCase()) + '</div></div>';
+    document.getElementById("alert-block-btn").style.display = item.source_ip ? "inline-flex" : "none";
+    document.getElementById("alert-backdrop").classList.add("show");
+    document.getElementById("alert-modal").classList.add("show");
+}
+function closeAlertModal() {
+    document.getElementById("alert-backdrop").classList.remove("show");
+    document.getElementById("alert-modal").classList.remove("show");
+}
+function alertBlockIp() {
+    if (!_alertIp) return;
+    doBlockIp(_alertIp, _alertPred, _alertConf).then(function() {
+        closeAlertModal();
+        refreshRecentConnectionsTable();
+        refreshStatCards();
+    });
+}
+
+// ── Unblock modal ──────────────────────────────────────────────────────────────
+function openUnblockModal(sourceIp, prediction, confidence) {
+    _unblockIp = sourceIp; _unblockPred = prediction; _unblockConf = confidence;
+    document.getElementById("unblock-modal-grid").innerHTML =
+        '<div class="modal-stat" style="background:rgba(31,209,165,0.06);border-color:rgba(31,209,165,0.16);"><div class="modal-stat-label" style="color:#9af5dd;">Source IP</div><div class="modal-stat-value mono" style="color:#e8f8ff;">' + esc(sourceIp) + '</div></div>' +
+        '<div class="modal-stat" style="background:rgba(31,209,165,0.04);border-color:rgba(31,209,165,0.12);"><div class="modal-stat-label" style="color:#9af5dd;">Original Prediction</div><div class="modal-stat-value" style="color:#e8f8ff;">' + esc(prediction) + '</div></div>';
+    document.getElementById("unblock-reason-input").value = "";
+    document.getElementById("unblock-backdrop").classList.add("show");
+    document.getElementById("unblock-modal").classList.add("show");
+}
+function closeUnblockModal() {
+    document.getElementById("unblock-backdrop").classList.remove("show");
+    document.getElementById("unblock-modal").classList.remove("show");
+    _unblockIp = null;
+}
+function confirmUnblock() {
+    var reason = document.getElementById("unblock-reason-input").value.trim();
+    if (!reason) { showMessage("error", "Please enter a reason for unblocking this IP."); return; }
+    if (!_unblockIp) return;
+    fetch("/unblock-ip", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({source_ip:_unblockIp,reason:reason})})
+        .then(function(res) { return res.json().then(function(data) { return {ok:res.ok,data:data}; }); })
+        .then(function(r) {
+            if (!r.ok) { showMessage("error", esc(r.data.error || "Unblock failed.")); return; }
+            closeUnblockModal();
+            showMessage("success", "IP <strong>" + esc(_unblockIp) + "</strong> has been unblocked.");
+            if (r.data.note) appendBlockNote(r.data.note);
+            refreshRecentConnectionsTable();
+            refreshStatCards();
+        })
+        .catch(function(e) { showMessage("error", "Request failed: " + esc(e.message)); });
+}
+
+// ── Block IP ───────────────────────────────────────────────────────────────────
+function doBlockIp(sourceIp, prediction, confidence) {
+    return fetch("/block-ip", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({source_ip:sourceIp,prediction:prediction,confidence:confidence})})
+        .then(function(res) { return res.json().then(function(data) { return {ok:res.ok,data:data}; }); })
+        .then(function(r) {
+            if (!r.ok) { showMessage("error", esc(r.data.error || "Block failed.")); return; }
+            showMessage("success", "IP <strong>" + esc(sourceIp) + "</strong> has been blocked.");
+            if (r.data.note) appendBlockNote(r.data.note);
+            return r.data;
+        })
+        .catch(function(e) { showMessage("error", "Request failed: " + esc(e.message)); });
+}
+
+function blockIpDirect(sourceIp, prediction, confidence, btn) {
+    openWqDialog({
+        title: "Block IP Address",
+        msg: "Block " + sourceIp + "? Future connections from this address will be marked as blocked.",
+        buttons: [{label:"Block IP",action:"confirm",cls:"btn-danger"},{label:"Cancel",action:"cancel",cls:"btn-ghost"}]
+    }).then(function(result) {
+        if (result.action !== "confirm") return;
+        if (btn) { btn.disabled = true; btn.textContent = "Blocking…"; }
+        doBlockIp(sourceIp, prediction, confidence).then(function() {
+            refreshRecentConnectionsTable();
+            refreshStatCards();
+            if (btn) { btn.disabled = false; btn.textContent = "Block IP"; }
+        });
+    });
+}
+
+// ── Block notes ────────────────────────────────────────────────────────────────
+function appendBlockNote(note) {
+    var list  = document.getElementById("block-reasons-list");
+    var empty = document.getElementById("block-reasons-empty");
+    if (empty) empty.remove();
+    var card = document.createElement("div");
+    card.className = "reason-card";
+    var chipType = note.note_type === "unblock" ? "unblock" : "block";
+    card.innerHTML = '<div class="reason-head"><div class="reason-title"><span class="note-type-chip ' + chipType + '">' + note.note_type.toUpperCase() + '</span><span class="cell-main mono">' + esc(note.source_ip) + '</span></div><span class="muted-small">' + esc(note.created_at || "Now") + '</span></div><div class="reason-text">' + esc(note.note_text) + '</div>';
+    list.prepend(card);
+}
+
+function clearBlockNotes() {
+    openWqDialog({
+        title: "Archive Activity Log",
+        msg: "Archive the current block/unblock log and clear the live view? Entries are preserved in history.",
+        buttons: [{label:"Clear & Archive",action:"confirm",cls:"btn-primary"},{label:"Cancel",action:"cancel",cls:"btn-ghost"}]
+    }).then(function(result) {
+        if (result.action !== "confirm") return;
+        fetch("/clear-block-notes", {method:"POST",headers:{"Content-Type":"application/json"}})
+            .then(function(res) {
+                return res.json().then(function(data) { return {ok: res.ok, data: data}; });
+            })
+            .then(function(r) {
+                if (!r.ok) {
+                    showMessage("error", esc((r.data && r.data.error) || "Archive request failed."));
+                    return;
+                }
+                document.getElementById("block-reasons-list").innerHTML = '<div class="empty-box" id="block-reasons-empty"><h3>Log cleared and archived</h3><p>Entries moved to history. Use "View History" to inspect them.</p></div>';
+                showMessage("success", (r.data && r.data.message) || "Block/unblock log archived and cleared.");
+            })
+            .catch(function(e) { showMessage("error", "Request failed: " + esc(e.message)); });
+    });
+}
+
+function openHistoryModal() {
+    document.getElementById("history-backdrop").classList.add("show");
+    document.getElementById("history-modal").classList.add("show");
+    var inner = document.getElementById("history-modal-list");
+    inner.innerHTML = '<div style="color:#7385a0;font-size:0.88rem;">Loading archived history…</div>';
+    fetch("/block-notes-history")
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (!data.notes || !data.notes.length) {
+                inner.innerHTML = '<div class="empty-box" style="text-align:center;"><h3>No archived history</h3><p>No archives exist yet.</p></div>';
+                return;
+            }
+            inner.innerHTML = data.notes.map(function(n) {
+                var chipType = n.note_type === "unblock" ? "unblock" : "block";
+                return '<div class="reason-card"><div class="reason-head"><div class="reason-title"><span class="note-type-chip ' + chipType + '">' + n.note_type.toUpperCase() + '</span><span class="cell-main mono">' + esc(n.source_ip) + '</span></div><div style="text-align:right;"><div class="muted-small">' + esc(n.created_at || "N/A") + '</div><div class="muted-small" style="font-size:0.72rem;">Archived: ' + esc(n.archived_at || "N/A") + '</div></div></div><div class="reason-text">' + esc(n.note_text) + '</div></div>';
+            }).join("");
+        })
+        .catch(function(e) { inner.innerHTML = '<div style="color:#e06a76;">Error: ' + esc(e.message) + '</div>'; });
+}
+function closeHistoryModal() {
+    document.getElementById("history-backdrop").classList.remove("show");
+    document.getElementById("history-modal").classList.remove("show");
+}
+function openDeleteHistoryDialog(inlineError) {
+    openWqDialog({
+        title: "Delete Block Notes History",
+        msg: "Permanently delete all archived block/unblock history? Enter the admin password to confirm.",
+        error: inlineError || "",
+        input: true, inputPlaceholder: "Admin password",
+        buttons: [{label:"Delete History",action:"confirm",cls:"btn-danger"},{label:"Cancel",action:"cancel",cls:"btn-ghost"}]
+    }).then(function(result) {
+        if (result.action !== "confirm") return;
+        fetch("/delete-block-notes-history", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({admin_password:result.inputVal})})
+            .then(function(res) { return res.json().then(function(d) { return {ok:res.ok,data:d}; }); })
+            .then(function(r) {
+                if (!r.ok) {
+                    openDeleteHistoryDialog(r.data.error || "Invalid admin password. History was not deleted.");
+                    return;
+                }
+                document.getElementById("history-modal-list").innerHTML = '<div style="color:#1fd1a5;font-size:0.9rem;padding:16px;">History deleted successfully.</div>';
+                showMessage("success", "Block notes history deleted.");
+            })
+            .catch(function(e) { showMessage("error", "Request failed: " + esc(e.message)); });
+    });
+}
+
+// ── Feedback ───────────────────────────────────────────────────────────────────
+function toggleFeedbackRow(predId) {
+    var row = document.getElementById("feedback-row-" + predId);
+    if (!row) return;
+    row.style.display = row.style.display === "none" ? "grid" : "none";
+}
+function submitFeedback(predId, sourceIp) {
+    var fbLabel   = document.getElementById("fb-label-" + predId);
+    var corrected = document.getElementById("fb-corrected-" + predId);
+    if (!fbLabel) { showMessage("error", "Please select a feedback type."); return; }
+    var body = {prediction_id: predId, feedback_label: fbLabel.value};
+    if (corrected && corrected.value.trim()) body.corrected_label = corrected.value.trim();
+    fetch("/feedback", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+        .then(function(res) { return res.json().then(function(d) { return {ok:res.ok,data:d}; }); })
+        .then(function(r) {
+            if (r.data.label_warning) {
+                showMessage("error", "⚠ " + esc(r.data.message) + " — Allowed: " + (r.data.allowed_labels || []).map(esc).join(", "));
+                return;
+            }
+            if (!r.ok) { showMessage("error", esc(r.data.error || "Feedback failed.")); return; }
+            var row = document.getElementById("feedback-row-" + predId);
+            if (row) row.innerHTML = '<div style="color:#1fd1a5;font-size:0.85rem;padding:4px 0;">✓ Feedback saved — resolved to: ' + esc(r.data.canonical_label || fbLabel.value) + '</div>';
+        })
+        .catch(function(e) { showMessage("error", "Request failed: " + esc(e.message)); });
+}
+
+// ── Clear records ──────────────────────────────────────────────────────────────
+function confirmClearRecords() {
+    openWqDialog({
+        title: "Clear Stored Records",
+        msg: "Clear all stored connection records and analyst feedback? This cannot be undone.",
+        buttons: [{label:"Clear Records",action:"confirm",cls:"btn-danger"},{label:"Cancel",action:"cancel",cls:"btn-ghost"}]
+    }).then(function(result) {
+        if (result.action !== "confirm") return;
+        fetch("/reset-recent-connections", {method:"POST",headers:{"Content-Type":"application/json"}})
+            .then(function(res) {
+                return res.json().then(function(data) { return {ok: res.ok, data: data}; });
+            })
+            .then(function(r) {
+                if (!r.ok) {
+                    showMessage("error", esc((r.data && r.data.error) || "Clear records failed."));
+                    return;
+                }
+                buildRecentTable([]);
+                ["stat-total","stat-types","stat-blocked","summary-total","summary-safe","summary-danger","summary-unknown"].forEach(function(id) {
+                    var el = document.getElementById(id); if (el) el.textContent = "0";
+                });
+                liveSummaryGrid.style.display = "none";
+                livePanel.style.display = "none"; liveWrap.innerHTML = "";
+                threatAlertBox.style.display = "none"; dismissBanner();
+                updateBreakdownFromCounts([]);
+                showMessage("success", (r.data && r.data.message) || "Records cleared.");
+            })
+            .catch(function(e) { showMessage("error", "Request failed: " + esc(e.message)); });
+    });
+}
+
+// ── Retrain ────────────────────────────────────────────────────────────────────
+function setRetrainStrip(type, html) {
+    var strip = document.getElementById("retrain-status-strip");
+    strip.className = "retrain-status-strip show" + (type ? " " + type : "");
+    strip.innerHTML = html;
+}
+function triggerRetrain() {
+    openWqDialog({
+        title: "Retrain Model",
+        msg: "Start a model refresh cycle? It runs in the background and updates the live detection engine when complete.",
+        buttons: [{label:"Start Retraining",action:"confirm",cls:"btn-primary"},{label:"Cancel",action:"cancel",cls:"btn-ghost"}]
+    }).then(function(result) {
+        if (result.action !== "confirm") return;
+        var btn = document.getElementById("retrain-btn");
+        btn.disabled = true; btn.textContent = "Retraining…";
+        setRetrainStrip("", "⏳ Retraining started — this may take several minutes.");
+        fetch("/retrain", {method:"POST",headers:{"Content-Type":"application/json"}})
+            .then(function(res) { return res.json().then(function(d) { return {status:res.status,data:d}; }); })
+            .then(function(r) {
+                if (r.status === 409) {
+                    setRetrainStrip("", "⏳ A retraining job is already running.");
+                } else if (r.status >= 400) {
+                    setRetrainStrip("err", "✗ " + esc(r.data.message || "Retraining could not be started."));
+                } else {
+                    setRetrainStrip("", "⏳ Retraining started. Use 'Check Status' to monitor progress.");
+                    schedulePollRetrain();
+                }
+            })
+            .catch(function(e) { setRetrainStrip("err", "✗ Request failed: " + esc(e.message)); })
+            .finally(function() { setTimeout(function() { btn.disabled=false; btn.textContent="Retrain Model"; }, 3000); });
+    });
+}
+var _pollTimer = null;
+function schedulePollRetrain() { clearTimeout(_pollTimer); _pollTimer = setTimeout(pollRetrainStatus, 8000); }
+function pollRetrainStatus() {
+    fetch("/retrain-status")
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.running) {
+                setRetrainStrip("", "⏳ Retraining in progress — please wait…");
+                schedulePollRetrain();
+            } else if (data.last_result && data.last_result.status === "ok") {
+                try {
+                    sessionStorage.setItem("waqqas_analysis_refresh", String(data.last_result.metrics_version || Date.now()));
+                } catch (eRefresh) {}
+                setRetrainStrip("ok", "✓ Retraining completed in " + esc(data.last_result.duration_seconds) + "s. Model reloaded. <a href='/analysis' style='color:inherit;text-decoration:underline;'>View updated Analysis</a>");
+            } else if (data.last_error) {
+                setRetrainStrip("err", "✗ Retraining failed: " + esc(data.last_error.slice(0,200)));
+            } else {
+                setRetrainStrip("", "No active retraining job. Use 'Retrain Model' to start one.");
+            }
+        })
+        .catch(function(e) { setRetrainStrip("err", "✗ Status check failed: " + esc(e.message)); });
+}
+
+// ── Recent datasets (local memory) + shared predict UI finalization ─────────────
+var RECENT_DS_KEY = "waqqas_ids_recent_datasets_v1";
+var ACTIVE_DS_KEY = "waqqas_ids_active_dataset_v1";
+var MAX_RECENT_DS = 5;
+
+function getActiveDatasetName() {
+    return _activeDatasetName || "";
+}
+function setActiveDatasetName(name) {
+    _activeDatasetName = name ? String(name).replace(/\\/g, "/").split("/").pop() : "";
+    if (_activeDatasetName) {
+        localStorage.setItem(ACTIVE_DS_KEY, _activeDatasetName);
+    } else {
+        localStorage.removeItem(ACTIVE_DS_KEY);
+    }
+    renderRecentDatasetsPanel();
+    renderServerCsvPanel();
+}
+
+function loadRecentDatasets() {
+    try { return JSON.parse(localStorage.getItem(RECENT_DS_KEY) || "[]") || []; } catch (e) { return []; }
+}
+function saveRecentDatasets(list) {
+    localStorage.setItem(RECENT_DS_KEY, JSON.stringify(list.slice(0, MAX_RECENT_DS)));
+}
+function pushRecentDataset(name, rows) {
+    if (!name) return;
+    var key = String(name).replace(/\\/g, "/").split("/").pop();
+    var list = loadRecentDatasets().filter(function(x) {
+        return x && normalizeDatasetName(x.name) !== normalizeDatasetName(key);
+    });
+    list.unshift({name: key, rows: rows == null ? null : rows, savedAt: Date.now()});
+    saveRecentDatasets(list);
+    renderRecentDatasetsPanel();
+}
+function removeRecentDataset(name) {
+    saveRecentDatasets(loadRecentDatasets().filter(function(x) { return x.name !== name; }));
+    if (isActiveDataset(name)) setActiveDatasetName("");
+    renderRecentDatasetsPanel();
+}
+function resetRecentDatasetMemory() {
+    localStorage.removeItem(RECENT_DS_KEY);
+    renderRecentDatasetsPanel();
+}
+function formatRecentTs(ts) {
+    try { return new Date(ts).toLocaleString(); } catch (e) { return ""; }
+}
+function renderRecentDatasetsPanel() {
+    var panel = document.getElementById("recent-datasets-panel");
+    var listEl = document.getElementById("recent-datasets-list");
+    if (!panel || !listEl) return;
+    var arr = loadRecentDatasets();
+    if (!arr.length) { panel.style.display = "none"; listEl.innerHTML = ""; return; }
+    panel.style.display = "block";
+    listEl.innerHTML = arr.map(function(entry) {
+        var isActive = isActiveDataset(entry.name);
+        var pill = isActive
+            ? '<span class="recent-status-pill selected">Selected</span>'
+            : '<span class="recent-status-pill unused">Unused</span>';
+        var useBtn = isActive
+            ? '<button type="button" class="btn btn-secondary btn-sm" disabled aria-disabled="true">Selected</button>'
+            : '<button type="button" class="btn btn-primary btn-sm js-recent-use">Use</button>';
+        return '<div class="recent-dataset-row' + (isActive ? " active" : "") + '" data-recent-name="' + escAttr(entry.name) + '">' +
+            '<div class="recent-dataset-meta"><div class="recent-dataset-name">' + esc(entry.name) + '</div>' +
+            '<div class="recent-dataset-sub">' + (entry.rows != null ? esc(String(entry.rows)) + " rows · " : "") + esc(formatRecentTs(entry.savedAt)) + '</div></div>' +
+            '<div class="recent-dataset-actions">' + pill + useBtn +
+            '<button type="button" class="btn btn-ghost btn-sm js-recent-del">Delete</button></div></div>';
+    }).join("");
+    listEl.querySelectorAll(".js-recent-use").forEach(function(btn) {
+        btn.addEventListener("click", function(ev) {
+            ev.preventDefault();
+            var row = btn.closest(".recent-dataset-row");
+            if (!row) return;
+            var nm = row.getAttribute("data-recent-name");
+            if (isActiveDataset(nm)) return;
+            runRecentDatasetFromHistory(nm);
+        });
+    });
+    listEl.querySelectorAll(".js-recent-del").forEach(function(btn) {
+        btn.addEventListener("click", function(ev) {
+            ev.preventDefault();
+            var row = btn.closest(".recent-dataset-row");
+            if (!row) return;
+            removeRecentDataset(row.getAttribute("data-recent-name"));
+        });
+    });
+}
+
+function finalizePredictUi(data) {
+    return Promise.all([refreshRecentConnectionsTable(), refreshStatCards()])
+        .then(function() {
+            var alerts = data.alert_items || [];
+            if (alerts.length) {
+                showThreatBanner(data.threat_count, alerts);
+                var critItem = null;
+                for (var i = 0; i < alerts.length; i++) {
+                    if (alerts[i].risk_level === "critical") { critItem = alerts[i]; break; }
+                }
+                openAlertModal(critItem || alerts[0]);
+            }
+            (data.block_notes_new || []).forEach(function(note) {
+                if (note && note.source_ip) appendBlockNote(note);
+            });
+        });
+}
+
+var _serverCsvToggleBound = false;
+function bindServerCsvToggle() {
+    if (_serverCsvToggleBound) return;
+    var toggle = document.getElementById("server-csv-toggle");
+    var popover = document.getElementById("server-csv-popover");
+    var wrap = document.getElementById("server-csv-collapsible");
+    if (!toggle || !popover || !wrap) return;
+    _serverCsvToggleBound = true;
+    toggle.addEventListener("click", function(ev) {
+        ev.stopPropagation();
+        var open = popover.classList.toggle("open");
+        toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    document.addEventListener("click", function(ev) {
+        if (!popover.classList.contains("open")) return;
+        if (!wrap.contains(ev.target)) {
+            popover.classList.remove("open");
+            toggle.setAttribute("aria-expanded", "false");
+        }
+    });
+}
+
+function renderServerCsvPanel() {
+    var wrap = document.getElementById("server-csv-collapsible");
+    var listEl = document.getElementById("server-csv-list");
+    var badge = document.getElementById("server-csv-badge");
+    var popover = document.getElementById("server-csv-popover");
+    var toggle = document.getElementById("server-csv-toggle");
+    if (!wrap || !listEl) return;
+    if (!_savedCsvFiles.length) {
+        wrap.style.display = "none";
+        listEl.innerHTML = "";
+        if (popover) popover.classList.remove("open");
+        if (toggle) toggle.setAttribute("aria-expanded", "false");
+        return;
+    }
+    wrap.style.display = "block";
+    if (badge) badge.textContent = String(_savedCsvFiles.length);
+    bindServerCsvToggle();
+    listEl.innerHTML = _savedCsvFiles.map(function(file) {
+        var isActive = isActiveDataset(file.name);
+        var pill = isActive
+            ? '<span class="recent-status-pill selected">Selected</span>'
+            : '<span class="recent-status-pill unused">Unused</span>';
+        var useBtn = isActive
+            ? '<button type="button" class="btn btn-secondary btn-sm" disabled aria-disabled="true">Selected</button>'
+            : '<button type="button" class="btn btn-primary btn-sm js-server-csv-use">Use</button>';
+        return '<div class="server-csv-row' + (isActive ? " active" : "") + '" data-csv-name="' + escAttr(file.name) + '">' +
+            '<div class="recent-dataset-meta"><div class="recent-dataset-name">' + esc(file.name) + '</div></div>' +
+            '<div class="recent-dataset-actions">' + pill + useBtn + '</div></div>';
+    }).join("");
+    listEl.querySelectorAll(".js-server-csv-use").forEach(function(btn) {
+        btn.addEventListener("click", function(ev) {
+            ev.preventDefault();
+            var row = btn.closest(".server-csv-row");
+            if (!row) return;
+            var nm = row.getAttribute("data-csv-name");
+            if (isActiveDataset(nm)) return;
+            runRecentDatasetFromHistory(nm);
+        });
+    });
+}
+
+function runRecentDatasetFromHistory(name) {
+    if (!name || isActiveDataset(name)) return;
+    openWqDialog({
+        title: "Re-run dataset",
+        msg: "Run intrusion detection again on the stored file \"" + name + "\"?",
+        buttons: [
+            {label: "Run detection", action: "confirm", cls: "btn-primary"},
+            {label: "Cancel", action: "cancel", cls: "btn-ghost"}
+        ]
+    }).then(function(result) {
+        if (result.action !== "confirm") return;
+        var runBtn = document.getElementById("run-btn");
+        runBtn.disabled = true;
+        runBtn.textContent = "Running…";
+        hideMessage();
+        threatAlertBox.style.display = "none";
+        dismissBanner();
+        fetch("/predict-saved", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({filename: name})})
+            .then(function(res) { return res.json().then(function(d) { return {ok: res.ok, data: d}; }); })
+            .then(function(r) {
+                if (!r.ok) {
+                    var html = "<strong>" + esc(r.data.error || "Request failed") + "</strong><br>" +
+                        esc(r.data.message || "The file may have been removed from the server.");
+                    showMessage("error", html);
+                    livePanel.style.display = "none";
+                    liveSummaryGrid.style.display = "none";
+                    return;
+                }
+                var usedName = r.data.saved_filename || name;
+                setActiveDatasetName(usedName);
+                showMessage("success", "Detection complete — <strong>" + esc(r.data.rows_processed) + "</strong> record(s) classified from <strong>" + esc(usedName) + "</strong>.");
+                _recordHighlightFamily = "";
+                renderSummary(r.data.results || []);
+                renderLiveResults(r.data.results || []);
+                showThreatAlert(r.data.alert_items || []);
+                pushRecentDataset(usedName, r.data.rows_processed);
+                return finalizePredictUi(r.data);
+            })
+            .catch(function(err) {
+                showMessage("error", "Request failed: " + esc(err.message));
+                livePanel.style.display = "none";
+                liveSummaryGrid.style.display = "none";
+            })
+            .finally(function() {
+                runBtn.disabled = false;
+                runBtn.textContent = "Run Detection";
+            });
+    });
+}
+
+document.addEventListener("click", function(ev) {
+    var el = ev.target.closest(".js-dash-action");
+    if (!el) return;
+    var action = el.getAttribute("data-action");
+    if (!action) return;
+    try {
+        if (action === "block") {
+            var m = JSON.parse(el.getAttribute("data-meta") || "{}");
+            blockIpDirect(m.ip, m.p, m.c, el);
+        } else if (action === "unblock") {
+            var m2 = JSON.parse(el.getAttribute("data-meta") || "{}");
+            openUnblockModal(m2.ip, m2.p, m2.c);
+        } else if (action === "feedback-toggle") {
+            toggleFeedbackRow(parseInt(el.getAttribute("data-id"), 10));
+        } else if (action === "feedback-save") {
+            var m3 = JSON.parse(el.getAttribute("data-meta") || "{}");
+            submitFeedback(m3.id, m3.ip || "");
+        }
+    } catch (err) {
+        console.warn("dash-action", err);
+    }
+});
+
+// ── Form submission ────────────────────────────────────────────────────────────
+form.addEventListener("submit", function(e) {
+    e.preventDefault();
+    if (!fileInput.files.length) { showMessage("error", "Please select a CSV file before running detection."); return; }
+    var runBtn = document.getElementById("run-btn");
+    runBtn.disabled = true; runBtn.textContent = "Running…";
+    hideMessage();
+    threatAlertBox.style.display = "none";
+    dismissBanner();
+
+    var fd = new FormData();
+    fd.append("file", fileInput.files[0]);
+    var uploadedName = fileInput.files[0].name;
+
+    fetch("/predict", {method:"POST", body: fd})
+        .then(function(res) { return res.json().then(function(d) { return {ok:res.ok,data:d}; }); })
+        .then(function(r) {
+            if (!r.ok) {
+                var html = "<strong>" + esc(r.data.error || "Upload failed") + "</strong><br>" + esc(r.data.message || "Review the file and try again.");
+                showMessage("error", html);
+                livePanel.style.display = "none"; liveSummaryGrid.style.display = "none";
+                return;
+            }
+            var usedName = r.data.saved_filename || uploadedName;
+            setActiveDatasetName(usedName);
+            showMessage("success", "Detection complete — <strong>" + esc(r.data.rows_processed) + "</strong> record(s) classified.");
+            _recordHighlightFamily = "";
+            renderSummary(r.data.results || []);
+            renderLiveResults(r.data.results || []);
+            showThreatAlert(r.data.alert_items || []);
+            pushRecentDataset(usedName, r.data.rows_processed);
+            return finalizePredictUi(r.data);
+        })
+        .catch(function(err) {
+            showMessage("error", "Request failed: " + esc(err.message));
+            livePanel.style.display = "none"; liveSummaryGrid.style.display = "none";
+        })
+        .finally(function() { runBtn.disabled = false; runBtn.textContent = "Run Detection"; });
+});
+
+// Page load — session bootstrap via application/json blocks
+(function() {
+    var ae = document.getElementById("wq-bootstrap-alerts");
+    var re = document.getElementById("wq-bootstrap-results");
+    var tcEl = document.getElementById("wq-bootstrap-threat-count");
+    var alerts = [], results = [];
+    try { if (ae && ae.textContent) alerts = JSON.parse(ae.textContent) || []; } catch (e1) { alerts = []; }
+    try { if (re && re.textContent) results = JSON.parse(re.textContent) || []; } catch (e2) { results = []; }
+    var tc = 0;
+    try { if (tcEl && tcEl.textContent) tc = parseInt(JSON.parse(tcEl.textContent), 10) || 0; } catch (e3) { tc = 0; }
+    if (results.length) { renderSummary(results); renderLiveResults(results); }
+    if (alerts.length)  { showThreatAlert(alerts); showThreatBanner(tc, alerts); }
+    try {
+        var adEl = document.getElementById("wq-bootstrap-active-dataset");
+        if (adEl && adEl.textContent) {
+            var serverActive = JSON.parse(adEl.textContent);
+            if (serverActive) setActiveDatasetName(serverActive);
+        }
+    } catch (eAd) {}
+    if (!_activeDatasetName) {
+        try {
+            var stored = localStorage.getItem(ACTIVE_DS_KEY);
+            if (stored) _activeDatasetName = stored;
+        } catch (eLs) {}
+    }
+    try {
+        var scEl = document.getElementById("wq-bootstrap-saved-csvs");
+        if (scEl && scEl.textContent) _savedCsvFiles = JSON.parse(scEl.textContent) || [];
+    } catch (eSc) {}
+    renderRecentDatasetsPanel();
+    renderServerCsvPanel();
+    initBreakdownTableInteractions();
+})();
+</script>
+{% endblock %}

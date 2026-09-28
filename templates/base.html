@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Waqqas IDS{% endblock %}</title>
+
+    <meta name="description" content="Waqqas — AI-powered network intrusion detection. Five-class supervised ML classification, source IP tracking, analyst response controls, and adaptive retraining.">
+    <meta name="theme-color" content="#08111b">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Outfit:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=waqqas-v7-cyber">
+
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    {% block splash %}{% endblock %}
+
+    <header class="topbar" role="banner">
+        <div class="topbar-edge" aria-hidden="true"></div>
+        <div class="topbar-inner">
+        <div class="brand-wrap">
+            <a href="/" class="brand-anchor" aria-label="Waqqas home">
+                <div class="brand-logo" aria-hidden="true">
+                    <span class="logo-grid-ring logo-grid-ring-1"></span>
+                    <span class="logo-grid-ring logo-grid-ring-2"></span>
+                    <span class="logo-grid-ring logo-grid-ring-3"></span>
+                    <span class="logo-grid-ring logo-grid-ring-4"></span>
+                    <span class="logo-grid-ring logo-grid-ring-5"></span>
+                    <span class="scope-ring"></span>
+                    <span class="scope-line scope-line-top"></span>
+                    <span class="scope-line scope-line-right"></span>
+                    <span class="scope-line scope-line-bottom"></span>
+                    <span class="scope-line scope-line-left"></span>
+                    <span class="scope-dot radar-target radar-target-center"></span>
+                    <span class="radar-target radar-target-one"></span>
+                    <span class="radar-target radar-target-two"></span>
+                    <span class="radar-target radar-target-three"></span>
+                </div>
+
+                <div class="brand-block">
+                    <div class="brand-title-row">
+                        <div class="brand brand-strong"><span class="waqqas-mark">WAQQAS</span></div>
+                        <span class="brand-sec-badge" title="Live defensive posture">SOC</span>
+                    </div>
+                    <div class="brand-subtitle">Neural intrusion defense · Live threat surface</div>
+                </div>
+            </a>
+        </div>
+
+        <nav class="nav" aria-label="Primary navigation">
+            <a href="/" class="{% if request.path == '/' %}nav-active{% endif %}">Home</a>
+            <a href="/about" class="{% if request.path == '/about' %}nav-active{% endif %}">About</a>
+            <a href="/features" class="{% if request.path == '/features' %}nav-active{% endif %}">Capabilities</a>
+            <a href="/data" class="{% if request.path in ['/data', '/dashboard'] %}nav-active{% endif %}">Dashboard</a>
+            <a href="/analysis" class="{% if request.path == '/analysis' %}nav-active{% endif %}">Analysis</a>
+            {% if session.get('logged_in') %}
+            <a href="/logout" class="nav-utility-link">Sign Out</a>
+            {% endif %}
+        </nav>
+
+        <div class="topbar-status" title="Classifier stack online">
+            <span class="topbar-pulse" aria-hidden="true"></span>
+            <span class="topbar-dot"></span>
+            <div class="topbar-status-stack">
+                <span class="topbar-status-kicker">Defense grid</span>
+                <span class="topbar-status-text">IDS Online</span>
+            </div>
+        </div>
+        </div>
+    </header>
+
+    <main id="main-content" class="container page-enter" role="main">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

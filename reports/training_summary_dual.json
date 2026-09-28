@@ -1,0 +1,14 @@
+{
+  "nsl_kdd": {
+    "dataset": "nsl_kdd",
+    "accuracy": 0.9897,
+    "cv_mean_accuracy": 0.9906,
+    "classes": [
+      "DoS",
+      "Normal",
+      "Probe",
+      "R2L",
+      "U2R"
+    ]
+  }
+}

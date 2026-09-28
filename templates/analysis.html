@@ -1,0 +1,404 @@
+{% extends "base.html" %}
+{% block title %}Analysis | Waqqas IDS{% endblock %}
+
+{% block head_extra %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js" defer></script>
+<style>
+/* Analysis page metric cards */
+.metric-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 24px;
+}
+@media (max-width: 900px) { .metric-row { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .metric-row { grid-template-columns: 1fr 1fr; } }
+
+.metric-card { padding: 22px; text-align: center; }
+.metric-card:hover { transform: translateY(-5px); border-color: rgba(31,209,165,0.24); }
+
+.metric-value {
+    font-size: 2rem; font-weight: 900;
+    font-family: "Outfit", sans-serif;
+    line-height: 1.1; margin-bottom: 6px;
+    letter-spacing: -0.03em;
+}
+.metric-value.good   { color: #1fd1a5; }
+.metric-value.warn   { color: #f2c46d; }
+.metric-value.bad    { color: #e06a76; }
+.metric-value.info   { color: #39cfff; }
+.metric-label  { font-size: 0.7rem; color: #7385a0; text-transform: uppercase; letter-spacing: 0.16em; font-weight: 800; }
+.metric-note   { font-size: 0.8rem; color: #9db0cb; margin-top: 6px; }
+
+.chart-container { position: relative; width: 100%; }
+.chart-container canvas { max-height: 340px; }
+
+.cv-score-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.cv-score-chip {
+    padding: 6px 12px; border-radius: 999px; font-size: 0.82rem; font-weight: 700;
+    background: rgba(31,209,165,0.10); border: 1px solid rgba(31,209,165,0.22); color: #1fd1a5;
+}
+
+.update-notice {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: 10px;
+    border: 1px solid rgba(57,207,255,0.18); background: rgba(57,207,255,0.05);
+    font-size: 0.78rem; color: #9db0cb; margin-bottom: 18px;
+    font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+}
+.update-notice strong { color: #39cfff; }
+
+/* Heat classes (avoid Jinja inside inline style="" — keeps editors / linters clean) */
+.heat-good { color: #1fd1a5 !important; font-weight: 800; }
+.heat-warn { color: #f2c46d !important; font-weight: 800; }
+.heat-bad  { color: #e06a76 !important; font-weight: 800; }
+.heat-fpr-good { color: #1fd1a5; font-weight: 800; }
+.heat-fpr-bad  { color: #e06a76; font-weight: 800; }
+.heat-dr-good { color: #1fd1a5; font-weight: 800; }
+.heat-dr-warn { color: #f2c46d; font-weight: 800; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="hero-panel">
+    <div class="hero-main">
+        <p class="eyebrow">Detection Intelligence</p>
+        <h1><span class="waqqas-mark">Waqqas</span> — Model Analysis</h1>
+        <p class="hero-text">
+            Inspect the trained ensemble's performance metrics, per-class detection rates,
+            cross-validation stability, algorithm comparison, and the full analytical picture
+            behind every classification decision.
+        </p>
+    </div>
+    <div class="hero-side hero-highlight">
+        {% if model_result and model_result.status == "ok" %}
+            <span class="status-chip active-chip">Analytics loaded</span>
+            <p class="hero-file">
+                {{ model_result.model_name }} · {{ model_result.accuracy }}% accuracy ·
+                {{ model_result.fpr }}% FPR · {{ model_result.detection_rate }}% detection rate
+            </p>
+        {% else %}
+            <span class="status-chip stored-chip">Training summary unavailable</span>
+            <p class="hero-file">Run the training pipeline to populate this analysis view.</p>
+        {% endif %}
+        <div class="hero-actions" style="margin-top:18px;">
+            <a href="/data" class="btn btn-primary link-btn" style="min-width:0;min-height:44px;font-size:0.86rem;">Open Dashboard</a>
+        </div>
+    </div>
+</section>
+
+<div class="update-notice" id="analysis-update-notice">
+    <strong>Live metrics</strong> — Refreshed after each completed model refresh cycle.{% if metrics_version %} <span style="opacity:0.85;">(build {{ metrics_version }})</span>{% endif %}
+</div>
+
+{% if model_result and model_result.status == "ok" %}
+
+<!-- Primary performance metrics -->
+<div class="metric-row reveal">
+    <div class="metric-card stat-card">
+        <div class="metric-value {{ 'good' if model_result.accuracy >= 95 else 'bad' }}">{{ model_result.accuracy }}%</div>
+        <div class="metric-label">Test Accuracy</div>
+        <div class="metric-note">Target ≥ 95% — {{ "✓ Met" if model_result.accuracy >= 95 else "✗ Below target" }}</div>
+    </div>
+    <div class="metric-card stat-card">
+        <div class="metric-value {{ 'good' if model_result.fpr < 5 else 'bad' }}">{{ model_result.fpr }}%</div>
+        <div class="metric-label">False Positive Rate</div>
+        <div class="metric-note">Target &lt; 5% — {{ "✓ Met" if model_result.fpr < 5 else "✗ Above target" }}</div>
+    </div>
+    <div class="metric-card stat-card">
+        <div class="metric-value {{ 'good' if model_result.detection_rate >= 93 else 'warn' }}">{{ model_result.detection_rate }}%</div>
+        <div class="metric-label">Detection Rate</div>
+        <div class="metric-note">Target ≥ 93% — {{ "✓ Met" if model_result.detection_rate >= 93 else "✗ Below target" }}</div>
+    </div>
+    <div class="metric-card stat-card">
+        <div class="metric-value info">{{ model_result.auc }}</div>
+        <div class="metric-label">AUC — Normal vs Attack</div>
+        <div class="metric-note">ROC area under curve. 1.0 = perfect separation.</div>
+    </div>
+</div>
+
+<div class="metric-row reveal">
+    <div class="metric-card stat-card">
+        <div class="metric-value good">{{ model_result.precision }}%</div>
+        <div class="metric-label">Weighted Precision</div>
+        <div class="metric-note">Positive predictions that are correct, weighted by class support.</div>
+    </div>
+    <div class="metric-card stat-card">
+        <div class="metric-value good">{{ model_result.recall }}%</div>
+        <div class="metric-label">Weighted Recall</div>
+        <div class="metric-note">Actual attacks the model detected, weighted by class support.</div>
+    </div>
+    <div class="metric-card stat-card">
+        <div class="metric-value good">{{ model_result.f1 }}%</div>
+        <div class="metric-label">Weighted F1-Score</div>
+        <div class="metric-note">Harmonic mean of precision and recall across all five classes.</div>
+    </div>
+    <div class="metric-card stat-card">
+        <div class="metric-value info">{{ model_result.cv_mean }}%</div>
+        <div class="metric-label">5-Fold CV Accuracy</div>
+        <div class="metric-note">Mean cross-validation accuracy. Confirms stable generalization.</div>
+    </div>
+</div>
+
+<!-- Cross-validation fold scores -->
+{% if model_result.cv_scores %}
+<section class="panel reveal" style="margin-bottom:24px;">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Stability Check</p>
+            <h2>5-Fold Cross-Validation Scores</h2>
+        </div>
+    </div>
+    <p style="color:#9db0cb; font-size:0.9rem; line-height:1.7; margin-bottom:14px;">
+        Each fold represents a held-out 20% slice of the training data. Consistent scores
+        across all five folds confirm the model generalizes — not overfitted to one partition.
+    </p>
+    <div class="cv-score-row">
+        {% for score in model_result.cv_scores %}
+        <div class="cv-score-chip">Fold {{ loop.index }}: {{ score }}%</div>
+        {% endfor %}
+    </div>
+    <div class="chart-container" style="margin-top:20px;">
+        <canvas id="cv-chart"></canvas>
+    </div>
+</section>
+{% endif %}
+
+<!-- Per-class metrics -->
+{% if model_result.per_class %}
+<section class="panel reveal" style="margin-bottom:24px;">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Per-Class Metrics</p>
+            <h2>Detection Performance by Attack Family</h2>
+        </div>
+    </div>
+    <p style="color:#9db0cb; font-size:0.9rem; line-height:1.7; margin-bottom:16px;">
+        Metrics from the held-out evaluation split. Support shows how many records each class contributed.
+        Rare attack families typically score lower — the training pipeline applies corrective balancing for them.
+    </p>
+    <div class="table-wrap" style="margin-bottom:20px;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Attack Class</th>
+                    <th>Precision %</th>
+                    <th>Recall %</th>
+                    <th>F1-Score %</th>
+                    <th>Support</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cls in model_result.per_class %}
+                <tr>
+                    <td data-label="Class"><span class="cell-main">{{ cls.label }}</span></td>
+                    <td data-label="Precision">
+                        <span class="{% if cls.precision >= 90 %}heat-good{% elif cls.precision >= 70 %}heat-warn{% else %}heat-bad{% endif %}">{{ cls.precision }}</span>
+                    </td>
+                    <td data-label="Recall">
+                        <span class="{% if cls.recall >= 90 %}heat-good{% elif cls.recall >= 70 %}heat-warn{% else %}heat-bad{% endif %}">{{ cls.recall }}</span>
+                    </td>
+                    <td data-label="F1"><span style="font-weight:800;">{{ cls.f1 }}</span></td>
+                    <td data-label="Support" style="color:#7385a0;">{{ cls.support }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="chart-container">
+        <canvas id="perclass-chart"></canvas>
+    </div>
+</section>
+{% endif %}
+
+<!-- Algorithm comparison -->
+{% if model_result.algo_comparison %}
+<section class="panel reveal" style="margin-bottom:24px;">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Algorithm Evaluation</p>
+            <h2>Individual Model Comparison</h2>
+        </div>
+    </div>
+    <p style="color:#9db0cb; font-size:0.9rem; line-height:1.7; margin-bottom:16px;">
+        Each candidate model was evaluated on the same held-out split before fusion into the
+        production ensemble. Combined voting delivers stronger, more stable outcomes than any single model alone.
+    </p>
+    <div class="table-wrap" style="margin-bottom:20px;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Algorithm</th>
+                    <th>Accuracy %</th>
+                    <th>Precision %</th>
+                    <th>Recall %</th>
+                    <th>F1 %</th>
+                    <th>FPR %</th>
+                    <th>Detection %</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for algo in model_result.algo_comparison %}
+                <tr>
+                    <td data-label="Algorithm"><span class="cell-main">{{ algo.name }}</span></td>
+                    <td data-label="Accuracy">{{ algo.accuracy }}</td>
+                    <td data-label="Precision">{{ algo.precision }}</td>
+                    <td data-label="Recall">{{ algo.recall }}</td>
+                    <td data-label="F1">{{ algo.f1 }}</td>
+                    <td data-label="FPR" class="{% if algo.fpr < 5 %}heat-fpr-good{% else %}heat-fpr-bad{% endif %}">{{ algo.fpr }}</td>
+                    <td data-label="Detection" class="{% if algo.detection_rate >= 93 %}heat-dr-good{% else %}heat-dr-warn{% endif %}">{{ algo.detection_rate }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="chart-container">
+        <canvas id="algo-chart"></canvas>
+    </div>
+</section>
+{% endif %}
+
+<!-- Stored prediction distribution -->
+{% if pred_breakdown %}
+<section class="panel reveal" style="margin-bottom:24px;">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Live Database</p>
+            <h2>Stored Prediction Distribution</h2>
+        </div>
+    </div>
+    <p style="color:#9db0cb; font-size:0.9rem; line-height:1.7; margin-bottom:16px;">
+        Cumulative breakdown of all {{ total_predictions }} predictions across all sessions.
+        {{ total_blocked }} source IP(s) currently in the active block registry.
+        These values come from the live SQLite database — updated on every page load.
+    </p>
+    <div class="table-wrap" style="margin-bottom:20px;">
+        <table>
+            <thead><tr><th>Attack Family</th><th style="text-align:right;width:120px;">Count</th></tr></thead>
+            <tbody>
+                {% for row in pred_breakdown %}
+                {% set fam = row.display_prediction or row.prediction %}
+                <tr class="{{ fam | breakdown_family_class }}">
+                    <td data-label="Family" style="font-weight:800;">{{ fam }}</td>
+                    <td data-label="Count" style="text-align:right;font-weight:800;">{{ row.count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="chart-container">
+        <canvas id="stored-chart"></canvas>
+    </div>
+</section>
+{% endif %}
+
+<!-- Dataset info -->
+{% if data_info %}
+<section class="panel reveal" style="margin-bottom:24px;">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Active Dataset</p>
+            <h2>Most Recent Upload</h2>
+        </div>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:0;">
+        <div class="stat-card">
+            <span class="stat-label">Rows</span>
+            <div class="stat-value">{{ data_info.rows }}</div>
+            <p class="stat-note">Total records in the most recent uploaded CSV.</p>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Columns</span>
+            <div class="stat-value">{{ data_info.columns_count }}</div>
+            <p class="stat-note">Feature fields in the uploaded file.</p>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">File</span>
+            <div class="stat-value stat-text">{{ data_info.filename }}</div>
+            <p class="stat-note">Filename of the most recently processed CSV.</p>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Methodology -->
+<section class="panel reveal" style="margin-bottom:24px;">
+    <div class="section-head">
+        <div>
+            <p class="section-kicker">Methodology</p>
+            <h2>How the model was trained and evaluated</h2>
+        </div>
+    </div>
+    <div class="info-grid">
+        <div class="info-box reveal-card">
+            <h3>Held-out evaluation</h3>
+            <p>
+                Performance metrics on this page come from a dedicated evaluation split that was
+                never used during training — so the numbers reflect real generalization, not memorization.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Signal-focused feature pipeline</h3>
+            <p>
+                The engine prioritizes the most informative connection attributes before classification,
+                reducing noise and keeping inference focused on what matters for detection quality.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Balanced learning for rare attack families</h3>
+            <p>
+                Rare but high-impact attack categories receive corrective weighting during training
+                so they are not drowned out by majority traffic patterns.
+            </p>
+        </div>
+        <div class="info-box reveal-card">
+            <h3>Ensemble decision layer</h3>
+            <p>
+                Multiple classifiers contribute probability-weighted votes, producing more stable
+                and accurate outcomes than any single model operating alone.
+            </p>
+        </div>
+    </div>
+</section>
+
+{% elif model_result and model_result.status == "error" %}
+<section class="panel reveal">
+    <div class="empty-box">
+        <h3>Training summary could not be parsed</h3>
+        <p>{{ model_result.message }}</p>
+    </div>
+</section>
+{% else %}
+<section class="panel reveal">
+    <div class="empty-box">
+        <h3>No training summary available</h3>
+        <p>Run the model refresh cycle from the dashboard to generate evaluation metrics.
+        All cards on this page populate automatically once that cycle completes.</p>
+    </div>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script type="application/json" id="wq-chart-bootstrap">{{ chart_bootstrap | tojson }}</script>
+<script src="{{ url_for('static', filename='analysis-charts.js') }}?v={{ metrics_version or 'waqqas-v8' }}" defer></script>
+<script>
+(function() {
+    var stored = null;
+    try { stored = sessionStorage.getItem("waqqas_analysis_refresh"); } catch (e) {}
+    if (!stored) return;
+    try { sessionStorage.removeItem("waqqas_analysis_refresh"); } catch (e2) {}
+    var notice = document.getElementById("analysis-update-notice");
+    if (notice) {
+        notice.innerHTML = "<strong>Metrics updated</strong> — Training cycle completed. Charts reflect the latest model evaluation.";
+        notice.style.borderColor = "rgba(31,209,165,0.35)";
+        notice.style.background = "rgba(31,209,165,0.08)";
+    }
+    if (!window.location.search.match(/fresh=/)) {
+        window.location.replace(window.location.pathname + "?fresh=" + encodeURIComponent(stored));
+    }
+})();
+</script>
+{% endblock %}
