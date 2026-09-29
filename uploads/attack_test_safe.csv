@@ -1,14 +1,6 @@
-<<<<<<< HEAD
 duration,protocol_type,service,flag,src_bytes,dst_bytes,land,wrong_fragment,urgent,hot,num_failed_logins,logged_in,num_compromised,root_shell,su_attempted,num_root,num_file_creations,num_shells,num_access_files,num_outbound_cmds,is_host_login,is_guest_login,count,srv_count,serror_rate,srv_serror_rate,rerror_rate,srv_rerror_rate,same_srv_rate,diff_srv_rate,srv_diff_host_rate,dst_host_count,dst_host_srv_count,dst_host_same_srv_rate,dst_host_diff_srv_rate,dst_host_same_src_port_rate,dst_host_srv_diff_host_rate,dst_host_serror_rate,dst_host_srv_serror_rate,dst_host_rerror_rate,dst_host_srv_rerror_rate,source_ip
 0,tcp,http,SF,181,5450,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,8,8,0.00,0.00,0.00,0.00,1.00,0.00,0.00,9,9,1.00,0.00,0.11,0.00,0.00,0.00,0.00,0.00,192.168.1.10
 0,tcp,private,S0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,1.00,1.00,0.00,0.00,1.00,0.00,0.00,255,255,1.00,0.00,1.00,0.00,1.00,1.00,0.00,0.00,185.23.44.91
 0,icmp,ecr_i,SF,1032,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0.00,0.00,0.00,0.00,1.00,0.00,0.00,255,255,1.00,0.00,1.00,0.00,0.00,0.00,0.00,0.00,91.204.12.77
 0,tcp,ftp_data,SF,0,0,0,0,0,2,0,0,1,0,0,0,1,0,1,0,0,0,120,24,0.00,0.00,0.12,0.08,0.20,0.80,0.15,180,32,0.18,0.76,0.03,0.14,0.00,0.00,0.11,0.07,103.88.14.6
-=======
-duration,protocol_type,service,flag,src_bytes,dst_bytes,land,wrong_fragment,urgent,hot,num_failed_logins,logged_in,num_compromised,root_shell,su_attempted,num_root,num_file_creations,num_shells,num_access_files,num_outbound_cmds,is_host_login,is_guest_login,count,srv_count,serror_rate,srv_serror_rate,rerror_rate,srv_rerror_rate,same_srv_rate,diff_srv_rate,srv_diff_host_rate,dst_host_count,dst_host_srv_count,dst_host_same_srv_rate,dst_host_diff_srv_rate,dst_host_same_src_port_rate,dst_host_srv_diff_host_rate,dst_host_serror_rate,dst_host_srv_serror_rate,dst_host_rerror_rate,dst_host_srv_rerror_rate,source_ip
-0,tcp,http,SF,181,5450,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,8,8,0.00,0.00,0.00,0.00,1.00,0.00,0.00,9,9,1.00,0.00,0.11,0.00,0.00,0.00,0.00,0.00,192.168.1.10
-0,tcp,private,S0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,1.00,1.00,0.00,0.00,1.00,0.00,0.00,255,255,1.00,0.00,1.00,0.00,1.00,1.00,0.00,0.00,185.23.44.91
-0,icmp,ecr_i,SF,1032,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,0.00,0.00,0.00,0.00,1.00,0.00,0.00,255,255,1.00,0.00,1.00,0.00,0.00,0.00,0.00,0.00,91.204.12.77
-0,tcp,ftp_data,SF,0,0,0,0,0,2,0,0,1,0,0,0,1,0,1,0,0,0,120,24,0.00,0.00,0.12,0.08,0.20,0.80,0.15,180,32,0.18,0.76,0.03,0.14,0.00,0.00,0.11,0.07,103.88.14.6
->>>>>>> 38bc9e24b3d6457bccd27731a1e182084f56adda
 0,tcp,http,SF,220,1200,0,0,0,0,5,1,2,1,0,1,0,1,0,0,0,0,65,18,0.10,0.10,0.05,0.03,0.28,0.72,0.11,140,30,0.21,0.69,0.02,0.08,0.13,0.10,0.06,0.05,45.77.201.55

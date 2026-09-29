@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 {
   "nsl_kdd": {
     "dataset": "nsl_kdd",
@@ -12,19 +11,4 @@
       "U2R"
     ]
   }
-=======
-{
-  "nsl_kdd": {
-    "dataset": "nsl_kdd",
-    "accuracy": 0.9897,
-    "cv_mean_accuracy": 0.9906,
-    "classes": [
-      "DoS",
-      "Normal",
-      "Probe",
-      "R2L",
-      "U2R"
-    ]
-  }
->>>>>>> 38bc9e24b3d6457bccd27731a1e182084f56adda
 }

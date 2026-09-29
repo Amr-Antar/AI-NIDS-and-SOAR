@@ -1,0 +1,7 @@
+duration,protocol_type,service,flag,src_bytes,dst_bytes,label
+1,tcp,http,SF,220,1200,normal
+2,udp,domain_u,SF,300,400,normal
+5,tcp,ftp_data,SF,150,900,attack
+7,tcp,private,REJ,0,0,attack
+3,udp,other,SF,180,700,normal
+9,tcp,private,S0,0,0,attack
